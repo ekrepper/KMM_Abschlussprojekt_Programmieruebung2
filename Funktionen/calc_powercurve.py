@@ -3,12 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-#Funktion zum einlesen der EKG-Daten
-def ekg_read_txt():
-    df = pd.read_csv("data/ekg_data/01_Ruhe.txt", sep = "\t")
-    df.columns = ['Messwerte in mV', 'Zeit in ms']
-    return df
-
 #Funktion zum einlesen der Activity Daten
 def activity_read_csv():
     df = pd.read_csv("data/activities/activity.csv")
@@ -31,50 +25,3 @@ def calc_powercurve(df):
 def best_effort(df, window):
     value = df["PowerOriginal"].rolling(window).mean()
     return value.max()
-
-
-#ekg_df = ekg_read_txt()
-activity_df = activity_read_csv()
-#print(ekg_df)
-
-#plt.plot(ekg_df["Zeit in ms"][:1000], ekg_df["Messwerte in mV"][:1000])
-#plt.show()
-
-power_curve = calc_powercurve(activity_df)
-#plt.plot(power_curve["Time_Window"], power_curve["Power"])
-#plt.show()
-
-
-
-def find_peaks(series, threshold, respacing_factor=5):
-    """
-    A function to find the peaks in a series
-    Args:
-        - series (pd.Series): The series to find the peaks in
-        - threshold (float): The threshold for the peaks
-        - respacing_factor (int): The factor to respace the series
-    Returns:
-        - peaks (list): A list of the indices of the peaks
-    """
-    # Respace the series
-    series = series.iloc[::respacing_factor]
-
-    # Filter the series
-    series = series[series>threshold]
-
-
-    peaks = []
-    last = 0
-    current = 0
-    next = 0
-
-    for index, row in series.items():
-        last = current
-        current = next
-        next = row
-
-        if last < current and current > next and current > threshold:
-            peaks.append(index-respacing_factor)
-
-    return peaks
-
