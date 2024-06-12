@@ -6,6 +6,7 @@ import plotly.express as px
 import os
 import sys
 import inspect
+from datetime import datetime
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
@@ -47,7 +48,22 @@ else:
 
 # Öffne das Bild und zeige es an
 image = Image.open(st.session_state.picture_path)
-st.image(image, caption=st.session_state.current_user if 'current_user' in st.session_state else "" )
+#st.image(image, caption=st.session_state.current_user if 'current_user' in st.session_state else "" )
+
+# Geburtsjahr zur Bildunterschrift hinzufügen
+if person_instance is not None:
+    name = f"{person_instance.firstname} {person_instance.lastname}"
+    date_of_birth = person_instance.date_of_birth
+    try:
+        # Stellen Sie sicher, dass date_of_birth ein Integer ist
+        birth_year = int(date_of_birth)
+    except ValueError:
+        birth_year = "Unbekannt"
+    caption = f"{name} (Geburtsjahr: {birth_year})"
+else:
+    caption = ""
+
+st.image(image, caption=caption)
 
 # Prüfen, ob ein Patient ausgewählt wurde und EKG-Tests laden
 if person_instance:
