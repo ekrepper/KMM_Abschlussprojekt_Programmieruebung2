@@ -1,7 +1,5 @@
 import streamlit as st
 from PIL import Image
-from person_class import Person as p
-from ekg_class import EKGdata as ekg
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
@@ -14,17 +12,19 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir) 
 
 #from A_my_streamlit import read_data as rd
-from performance_hr_analysis import performance_hr_analysis as pha 
-from my_functions import calc_powercurve as cp
+from Funktionen import performance_hr_analysis as pha 
+from Funktionen import calc_powercurve as cp
+from Funktionen import person_class as pc
+from Funktionen import ekg_class as ekg
 
 # Eine Überschrift der ersten Ebene
 st.write("# PATIENTEN-DATENBANK")
 
 # Laden Sie die Personendaten
-person_data = p.load_person_data()
+person_data = pc.Person.load_person_data()
 
 # Legen Sie eine neue Liste mit den Personennamen an
-patients = p.get_person_list(person_data)
+patients = pc.Person.get_person_list(person_data)
 patients.insert(0, "Wählen Sie einen Patienten aus")
 
 # Nutzen Sie ihre neue Liste anstelle der hard-gecodeten Lösung
@@ -37,9 +37,9 @@ if 'picture_path' not in st.session_state:
 # Überprüfen, ob ein tatsächlicher Patient ausgewählt wurde
 if selected_patient != "Wählen Sie einen Patienten aus":
     st.session_state.current_user = selected_patient
-    person_data_dict = p.find_person_data_by_name(st.session_state.current_user)
+    person_data_dict = pc.Person.find_person_data_by_name(st.session_state.current_user)
     st.session_state.picture_path = person_data_dict["picture_path"]
-    person_instance = p(person_data_dict)
+    person_instance = pc.Person(person_data_dict)
 else:
     st.session_state.picture_path = 'data/pictures/Patientendatenbank.jpg'
     st.session_state.current_user = ""
@@ -62,7 +62,7 @@ if person_instance:
 
     if selected_ekg != "Wählen Sie einen Test aus" and selected_ekg != "Noch keine EKG-Daten vorhanden":
         ekg_id = int(selected_ekg.split(" ")[1].replace(";", ""))
-        ekg_data = ekg.load_by_id(ekg_id)
+        ekg_data = ekg.EKGdata.load_by_id(ekg_id)
 
         if ekg_data:
             st.write(f"Durchschnittliche Herzfrequenz: {ekg_data.heartrate:.2f} bpm")
