@@ -14,11 +14,13 @@ class EKGdata:
         self.df = pd.read_csv(self.data, sep='\t', header=None, names=['Messwerte in mV', 'Zeit in ms'])
         self.df_plot = self.df.head(10000)  # Limit to the first 10,000 data points
         self.peaks = self.find_peaks(self.df["Messwerte in mV"].copy(), 340)
-        self.peaks_plot = self.find_peaks(self.df_plot["Messwerte in mV"].copy(), 340)   
+        self.peaks_plot = self.find_peaks(self.df_plot["Messwerte in mV"].copy(), 340)
+        self.t_puls = self.calc_tpuls()   
         self.heartrate = self.calc_heartrate()
         self.max_heartrate = self.calc_max_heartrate()
         self.heartrate_time = self.calc_heartrate_time()
         self.duration = self.df["Zeit in ms"][len(self.df["Zeit in ms"]) - 1] / 1000
+        
 
 
     def make_plot(self):
@@ -79,9 +81,7 @@ class EKGdata:
 
         return peaks
 
-
-    
-    def calc_heartrate(self):
+    def calc_tpuls(self):
         timehr = np.array(self.df["Zeit in ms"][self.peaks])
         
         if len(timehr) < 2:
@@ -95,8 +95,12 @@ class EKGdata:
         if len(t_puls) < 2:
             raise ValueError("Nicht genügend valide Intervall zur Berechnung der Herzfrequenz.")
         
+        return t_puls
+    
+    def calc_heartrate(self):
+        
         # Optional: Mittlere 80% der Daten zur Berechnung verwenden
-        trimmed_t_puls = t_puls[int(len(t_puls) * 0.1) : int(len(t_puls) * 0.9)]
+        trimmed_t_puls = self.t_puls[int(len(self.t_puls) * 0.1) : int(len(self.t_puls) * 0.9)]
         
         heartrate = (1 / np.mean(trimmed_t_puls)) * 60 * 1000
         
@@ -104,37 +108,16 @@ class EKGdata:
 
 
     def calc_max_heartrate(self):
-        if len(self.peaks) < 2:
-            return None  # Not enough data to calculate heart rate
-        
-        timehr = np.array(self.df["Zeit in ms"][self.peaks])
-        t_puls = np.diff(timehr)
-        
-        # Ensure all intervals are positive
-        t_puls = t_puls[t_puls > 0]
-        
-        if len(t_puls) == 0:
-            return None  # No valid intervals
         
         # Find the minimum interval to calculate the maximum heart rate
-        min_interval = np.min(t_puls)
+        min_interval = np.min(self.t_puls)
         max_heartrate = (1 / min_interval) * 60 * 1000  # Convert ms to minutes
         return max_heartrate
     
     def calc_heartrate_time(self):
-        if len(self.peaks) < 2:
-            return None  # Not enough data to calculate heart rate
         
+        heartrate = (1 / self.t_puls) * 60 * 1000
         timehr = np.array(self.df["Zeit in ms"][self.peaks])
-        t_puls = np.diff(timehr)
-        
-        # Ensure all intervals are positive
-        t_puls = t_puls[t_puls > 0]
-
-        if len(t_puls) == 0:
-            return None  # No valid intervals
-        
-        heartrate = (1 / t_puls) * 60 * 1000
         
         #Speichern der Daten in ei  DataFrame
         data = {"Heartrate" : heartrate,
@@ -144,19 +127,8 @@ class EKGdata:
         return heartrate
 
     def calc_hfr(self):
-        if len(self.peaks) < 2:
-            return None  # Not enough data to calculate heart rate
-        
-        timehr = np.array(self.df["Zeit in ms"][self.peaks])
-        t_puls = np.diff(timehr)
-        
-        # Ensure all intervals are positive
-        t_puls = t_puls[t_puls > 0]
 
-        if len(t_puls) == 0:
-            return None  # No valid intervals
-        
-        hvr = (1 / np.std(t_puls)) * 60000
+        hvr = (1 / np.std(self.t_puls)) * 60000
 
         return hvr
 
