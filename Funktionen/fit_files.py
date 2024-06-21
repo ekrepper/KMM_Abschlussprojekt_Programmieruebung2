@@ -35,6 +35,8 @@ class FitFile:
                     self.avg_speed = data.value
                 if data.name == "total_distance":
                     self.total_distance = data.value
+                if data.name == "total_timer_time":
+                    self.total_timer_time = data.value
 
     def get_heartrate(self):
         return self.heartrate
@@ -46,7 +48,7 @@ class FitFile:
         return self.distance
     
     def get_total_distance(self):
-        total_distance_km = self.total_distance
+        total_distance_km = self.total_distance/1000
         return self.total_distance_km
     
     def get_avg_hr(self):
@@ -60,17 +62,29 @@ class FitFile:
             return f"{minutes}:{seconds:02d}"
         else:
             return None
+        
+    def get_total_time(self):
+        if self.total_timer_time is not None:
+            hours = int(self.total_timer_time // 3600)
+            minutes = int((self.total_timer_time % 3600) // 60)
+            seconds = int(self.total_timer_time % 60)
+            total_time = f"{hours:02}:{minutes:02}:{seconds:02}"
+            return total_time
+        else:
+            return None
     
     def print_data(self):
-        print("Heart Rate:", self.heartrate)
-        print("Time:", self.time)
-        print("Distance:", self.distance)
-        print("Total Distance:", self.total_distance if self.total_distance is not None else "No total distance data available")
+        total_distance_km = self.total_distance / 1000 if self.total_distance is not None else "No total distance data available"
+        print("Total Distance:", total_distance_km)
         print("Avg Heart Rate:", self.avg_hr if self.avg_hr is not None else "No avg heart rate data available")
         avg_pace = self.get_avg_pace()
         print("Avg Pace (min/km):", avg_pace if avg_pace is not None else "No avg pace data available")
+        total_time = self.get_total_time()
+        print("Total Time (hh:mm:ss):", total_time if total_time is not None else "No total elapsed time data available")
+    
 
 # Verwendung der Klasse
 filepath = "data/activities/Running_2024-06-04T13_16_40.fit"
 parser = FitFile(filepath)
 parser.print_data()
+
