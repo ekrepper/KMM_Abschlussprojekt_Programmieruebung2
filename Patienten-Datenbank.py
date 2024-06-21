@@ -212,6 +212,7 @@ elif option == "Patientendatenbank":
 
             if option == "Trainingsübersicht":
                 st.write("Entwicklung Laufumfang") 
+                
 
 
 

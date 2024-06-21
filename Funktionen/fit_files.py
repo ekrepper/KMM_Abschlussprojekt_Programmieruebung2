@@ -91,6 +91,13 @@ class FitFile:
             return date_str
         else:
             return "No timestamp data available"
+    
+    def get_calendar_week(self):
+        if self.timestamp is not None:
+            calendar_week = self.timestamp.isocalendar()[1]
+            return calendar_week
+        else:
+            return "No timestamp data available"
 
     def print_data(self):
         total_distance_km = self.get_total_distance()
@@ -102,8 +109,10 @@ class FitFile:
         print("Total Time (hh:mm:ss):", total_time)
         date_str = self.get_date()
         print("Date:", date_str)
+        calendar_week = self.get_calendar_week()
+        print("Calendar Week:", calendar_week)
 
-# Verwendung der Klassen
+# Verwendung der Klasse
 filepath = "data/activities/Running_2024-06-04T13_16_40.fit"
 fit_parser = FitFile(filepath)
 fit_parser.print_data()
