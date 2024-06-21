@@ -6,7 +6,6 @@ import plotly.express as px
 import os
 import sys
 import inspect
-import matplotlib.pyplot as plt
 import numpy as np
 
 #from A_my_streamlit import read_data as rd
@@ -97,7 +96,6 @@ elif option == "Patientendatenbank":
             
             else:
                 st.write("Keine EKG-Daten gefunden.")
-
 
         
         # Prüfen, ob ein Patient ausgewählt wurde und Leistungstest laden
@@ -210,12 +208,18 @@ elif option == "Patientendatenbank":
 
                     st.plotly_chart(fig)
 
-            if option == "Trainingsübersicht":
-                st.write("Entwicklung Laufumfang") 
-                
+elif option == "Trainingsübersicht":
+    st.write("Entwicklung Laufumfang") 
+    uploaded_files = st.file_uploader("Choose a .fit file", accept_multiple_files=True)
+    for uploaded_file in uploaded_files:
+        trainings_data = uploaded_file.read()
+        st.write("filename:", uploaded_file.name)
 
+    tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
+    data = np.random.randn(10, 1)
 
+    tab1.subheader("A tab with a chart")
+    tab1.bar_chart(data)
 
-
-
-
+    tab2.subheader("A tab with the data")
+    tab2.write("Hallo")

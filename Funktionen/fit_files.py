@@ -99,7 +99,7 @@ class FitFile:
         else:
             return "No timestamp data available"
 
-    def print_data(self):
+    '''def print_data(self):
         total_distance_km = self.get_total_distance()
         print("Total Distance (km):", total_distance_km)
         print("Avg Heart Rate (bpm):", self.avg_hr if self.avg_hr is not None else "No avg heart rate data available")
@@ -110,9 +110,9 @@ class FitFile:
         date_str = self.get_date()
         print("Date:", date_str)
         calendar_week = self.get_calendar_week()
-        print("Calendar Week:", calendar_week)
+        print("Calendar Week:", calendar_week)'''
 
 # Verwendung der Klasse
 filepath = "data/activities/Running_2024-06-04T13_16_40.fit"
 fit_parser = FitFile(filepath)
-fit_parser.print_data()
+#fit_parser.print_data()
