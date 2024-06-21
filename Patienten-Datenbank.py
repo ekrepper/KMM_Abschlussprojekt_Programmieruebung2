@@ -211,8 +211,9 @@ elif option == "Patientendatenbank":
                     st.plotly_chart(fig)
 
             if option == "Trainingsübersicht":
-                st.write("Entwicklung Laufumfang")
-                
+                st.write("Entwicklung Laufumfang") 
+
+
 
 
 
