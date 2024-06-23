@@ -1,12 +1,11 @@
 import fitparse
 import numpy as np
 import datetime as datetime
-import sqlite3
-from sqlite3 import Error
+import streamlit as st
 
 class FitFile:
-    def __init__(self, filepath):
-        self.filepath = filepath
+    def __init__(self, fit_file):
+        self.fit_file = fit_file
         self.dateref = datetime.datetime(1970, 1, 1)
         self.heartrate = np.array([])
         self.time = np.array([])
@@ -20,9 +19,9 @@ class FitFile:
 
     def load_fit_file(self):
         try:
-            fitfile = fitparse.FitFile(self.filepath)
+            fitfile = fitparse.FitFile(self.fit_file)
         except Exception as e:
-            print(f"Error loading FIT file: {e}")
+            st.error(f"Error loading FIT file: {e}")
             return
         
         for record in fitfile.get_messages("record"):
@@ -93,7 +92,7 @@ class FitFile:
     def get_insert_statement(self):
         """Erstellt eine SQL-Insert-Anweisung für die trainings-Tabelle basierend auf den gesammelten Daten"""
         if not all([self.timestamp, self.total_timer_time, self.total_distance]):
-            print("Fehlende Daten für Insert-Anweisung.")
+            st.error("Fehlende Daten für Insert-Anweisung.")
             return None
         
         insert_sql = f"""
@@ -114,49 +113,3 @@ class FitFile:
             );
         """
         return insert_sql
-
-# Beispiel zur Verwendung der Klasse und Einfügen der Daten in die SQLite-Datenbank
-if __name__ == "__main__":
-    # Verbindung zur SQLite-Datenbank herstellen
-    try:
-        conn = sqlite3.connect('fitfile_data.db')
-        print("Verbindung zur SQLite-Datenbank hergestellt.")
-    except Error as e:
-        print(f"Fehler beim Herstellen der Verbindung zur SQLite-Datenbank: {e}")
-    
-    # Erstellen der trainings-Tabelle, falls sie noch nicht existiert
-    create_table_sql = """
-        CREATE TABLE IF NOT EXISTS trainings (
-            activity_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            activity_date DATE,
-            activity_kw INTEGER,
-            activity_duration TIME,
-            activity_total_distance FLOAT,
-            activity_avg_pace TIME,
-            activity_avg_hr INTEGER
-        );
-    """
-    try:
-        c = conn.cursor()
-        c.execute(create_table_sql)
-        print("Tabelle trainings erfolgreich erstellt.")
-    except Error as e:
-        print(f"Fehler beim Erstellen der Tabelle trainings: {e}")
-
-    # Beispiel FitFile einlesen und Daten in die Datenbank einfügen
-    filepath = "data/activities/Running_2024-06-04T13_16_40.fit"
-    fit_parser = FitFile(filepath)
-
-    # SQL-Insert-Anweisung erstellen
-    insert_sql = fit_parser.get_insert_statement()
-
-    # Daten in die Datenbank einfügen
-    try:
-        c.execute(insert_sql)
-        conn.commit()
-        print("Daten erfolgreich in die Datenbank eingefügt.")
-    except Error as e:
-        print(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
-
-    # Verbindung zur Datenbank schließen
-    conn.close()

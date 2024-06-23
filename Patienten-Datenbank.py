@@ -10,6 +10,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 import datetime
+import sqlite3
+from sqlite3 import Error
 
 #from A_my_streamlit import read_data as rd
 from Funktionen import performance_hr_analysis as pha 
@@ -212,11 +214,41 @@ elif option == "Patientendatenbank":
                     st.plotly_chart(fig)
 
 elif option == "Trainingsübersicht":
-    st.write("Entwicklung Laufumfang") 
+    st.header("Trainingsübersicht")
     uploaded_files = st.file_uploader("Choose a .fit file", accept_multiple_files=True)
-    for uploaded_file in uploaded_files:
-        trainings_data = uploaded_file.read()
-        st.write("filename:", uploaded_file.name)
+
+    if uploaded_files:
+        # Connect to SQLite database
+        conn = sqlite3.connect('fitfile_data.db')
+        c = conn.cursor()
+
+        # Create table if not exists
+        create_table_sql = """
+            CREATE TABLE IF NOT EXISTS trainings (
+                activity_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                activity_date DATE,
+                activity_kw INTEGER,
+                activity_duration TIME,
+                activity_total_distance FLOAT,
+                activity_avg_pace TIME,
+                activity_avg_hr INTEGER
+            );
+        """
+        c.execute(create_table_sql)
+
+        for uploaded_file in uploaded_files:
+            fit_parser = ff.FitFile(uploaded_file)
+            insert_sql = fit_parser.get_insert_statement()
+            if insert_sql:
+                try:
+                    c.execute(insert_sql)
+                    conn.commit()
+                    st.success(f"Daten aus {uploaded_file.name} erfolgreich in die Datenbank eingefügt.")
+                except Error as e:
+                    st.error(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
+
+        # Close database connection
+        conn.close()
 
     tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
     
