@@ -7,6 +7,9 @@ import os
 import sys
 import inspect
 import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+import datetime
 
 #from A_my_streamlit import read_data as rd
 from Funktionen import performance_hr_analysis as pha 
@@ -216,10 +219,68 @@ elif option == "Trainingsübersicht":
         st.write("filename:", uploaded_file.name)
 
     tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
-    data = np.random.randn(10, 1)
+    
+    # Beispiel-Daten für den Laufumfang
+    data = np.random.randint(50, 100, size=(10, 1))  # Zufallsdaten als Beispiel
+    df = pd.DataFrame(data, columns=["Laufumfang"])
 
-    tab1.subheader("A tab with a chart")
-    tab1.bar_chart(data)
+    # Berechnung der prozentualen Veränderung
+    df["Veränderung (%)"] = df["Laufumfang"].pct_change() * 100
+    df["Veränderung (%)"] = df["Veränderung (%)"].fillna(0)  # Ersetze NaN mit 0 für den ersten Wert
 
-    tab2.subheader("A tab with the data")
-    tab2.write("Hallo")
+    # Darstellung der Daten im Tab "Data"
+    #tab2.subheader("Trainingsdaten")
+    #tab2.write(df)
+
+    # Lineare Regression für die Trendlinie
+    X = np.arange(len(df)).reshape(-1, 1)  # Trainingseinheiten als Feature
+    y = df["Laufumfang"].values  # Laufumfang als Zielwert
+    model = LinearRegression().fit(X, y)
+    trend = model.predict(X)
+
+    # Darstellung des Diagramms im Tab "Chart"
+    tab1.subheader("Entwicklung Laufumfang")
+
+    fig = go.Figure()
+
+    # Balkendiagramm
+    fig.add_trace(go.Bar(
+        x=df.index,
+        y=df["Laufumfang"],
+        text=df["Veränderung (%)"].apply(lambda x: f'{x:.2f}%'),
+        textposition='auto',
+        name="Laufumfang"
+    ))
+
+    # Trendlinie
+    fig.add_trace(go.Scatter(
+        x=df.index,
+        y=trend,
+        mode='lines',
+        name='Trendlinie',
+        line=dict(color='firebrick', width=2)
+    ))
+
+    fig.update_layout(
+        title="Entwicklung des Laufumfangs mit prozentualer Veränderung",
+        xaxis_title="Kalenderwoche",
+        yaxis_title="Laufumfang",
+        template="plotly_white"
+    )
+
+    tab1.plotly_chart(fig)
+
+    # Heutiges Datum ermitteln
+    today = datetime.date.today()
+
+    # Startdatum für den Datepicker
+    start_date = datetime.date(2000, 1, 1)
+
+# Datepicker zur Auswahl eines Datums im angegebenen Zeitraum
+    selected_date = tab2.date_input(
+        "Wähle ein Datum aus:",
+        (start_date, today),  # Standardmäßig von 1. Januar 2000 bis heute
+        start_date,  # Standardwert ist der 1. Januar 2000
+        today,  # Enddatum ist das heutige Datum
+        format="DD.MM.YYYY"  # Format des Datumsinputs
+    )
