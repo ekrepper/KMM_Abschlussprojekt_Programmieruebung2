@@ -214,15 +214,20 @@ elif option == "Patientendatenbank":
                     st.plotly_chart(fig)
 
 elif option == "Trainingsübersicht":
-    st.header("Trainingsübersicht")
+    st.write("Entwicklung Laufumfang") 
     uploaded_files = st.file_uploader("Choose a .fit file", accept_multiple_files=True)
+    for uploaded_file in uploaded_files:
+        trainings_data = uploaded_file.read()
+        st.write("filename:", uploaded_file.name)
 
-    if uploaded_files:
-        # Connect to SQLite database
+        fit_parser = ff.FitFile(uploaded_file)
+        st.title("FIT-Datei Import und Auswertung")
+
+        # SQLite-Datenbankverbindung
         conn = sqlite3.connect('fitfile_data.db')
         c = conn.cursor()
 
-        # Create table if not exists
+        # Tabelle erstellen, falls sie nicht existiert
         create_table_sql = """
             CREATE TABLE IF NOT EXISTS trainings (
                 activity_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -236,19 +241,26 @@ elif option == "Trainingsübersicht":
         """
         c.execute(create_table_sql)
 
-        for uploaded_file in uploaded_files:
-            fit_parser = ff.FitFile(uploaded_file)
-            insert_sql = fit_parser.get_insert_statement()
-            if insert_sql:
-                try:
-                    c.execute(insert_sql)
-                    conn.commit()
-                    st.success(f"Daten aus {uploaded_file.name} erfolgreich in die Datenbank eingefügt.")
-                except Error as e:
-                    st.error(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
+        # Drag and Drop Widget für FIT-Dateien
+        st.sidebar.header("Import FIT-Datei")
+        uploaded_files = st.sidebar.file_uploader("Datei(en) hier ablegen", type=['fit'], accept_multiple_files=True)
 
-        # Close database connection
+        if uploaded_files:
+            for uploaded_file in uploaded_files:
+                fit_parser = FitFile(uploaded_file)
+                insert_sql = fit_parser.get_insert_statement()
+                if insert_sql:
+                    try:
+                        c.execute(insert_sql)
+                        conn.commit()
+                        st.success(f"Daten aus {uploaded_file.name} erfolgreich in die Datenbank eingefügt.")
+                    except Error as e:
+                        st.error(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
+
+        # Verbindung zur Datenbank schließen
         conn.close()
+
+
 
     tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
     
