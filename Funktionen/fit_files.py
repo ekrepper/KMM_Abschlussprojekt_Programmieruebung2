@@ -1,7 +1,8 @@
 import fitparse
 import numpy as np
 import datetime as datetime
-from collections import defaultdict
+import sqlite3
+from sqlite3 import Error
 
 class FitFile:
     def __init__(self, filepath):
@@ -10,7 +11,6 @@ class FitFile:
         self.heartrate = np.array([])
         self.time = np.array([])
         self.distance = np.array([])
-        self.speed = np.array([])
         self.avg_hr = None
         self.avg_speed = None
         self.total_distance = None
@@ -47,21 +47,12 @@ class FitFile:
                 if data.name == "timestamp":
                     self.timestamp = data.value
 
-    def get_heartrate(self):
-        return self.heartrate
-
-    def get_time(self):
-        return self.time
-
-    def get_distance(self):
-        return self.distance
-    
     def get_total_distance(self):
         if self.total_distance is not None:
             total_distance_km = self.total_distance / 1000
             return total_distance_km
         else:
-            return "No total distance data available"
+            return None
     
     def get_avg_hr(self):
         return self.avg_hr
@@ -73,7 +64,7 @@ class FitFile:
             seconds = int((pace - minutes) * 60)
             return f"{minutes}:{seconds:02d}"
         else:
-            return "No avg pace data available"
+            return None
         
     def get_total_time(self):
         if self.total_timer_time is not None:
@@ -83,36 +74,89 @@ class FitFile:
             total_time = f"{hours:02}:{minutes:02}:{seconds:02}"
             return total_time
         else:
-            return "No total elapsed time data available"
+            return None
     
     def get_date(self):
         if self.timestamp is not None:
-            date_str = self.timestamp.strftime('%d.%m.%y')
+            date_str = self.timestamp.strftime('%Y-%m-%d')
             return date_str
         else:
-            return "No timestamp data available"
+            return None
     
     def get_calendar_week(self):
         if self.timestamp is not None:
             calendar_week = self.timestamp.isocalendar()[1]
             return calendar_week
         else:
-            return "No timestamp data available"
+            return None
 
-    '''def print_data(self):
-        total_distance_km = self.get_total_distance()
-        print("Total Distance (km):", total_distance_km)
-        print("Avg Heart Rate (bpm):", self.avg_hr if self.avg_hr is not None else "No avg heart rate data available")
-        avg_pace = self.get_avg_pace()
-        print("Avg Pace (min/km):", avg_pace)
-        total_time = self.get_total_time()
-        print("Total Time (hh:mm:ss):", total_time)
-        date_str = self.get_date()
-        print("Date:", date_str)
-        calendar_week = self.get_calendar_week()
-        print("Calendar Week:", calendar_week)'''
+    def get_insert_statement(self):
+        """Erstellt eine SQL-Insert-Anweisung für die trainings-Tabelle basierend auf den gesammelten Daten"""
+        if not all([self.timestamp, self.total_timer_time, self.total_distance]):
+            print("Fehlende Daten für Insert-Anweisung.")
+            return None
+        
+        insert_sql = f"""
+            INSERT INTO trainings (
+                activity_date,
+                activity_kw,
+                activity_duration,
+                activity_total_distance,
+                activity_avg_pace,
+                activity_avg_hr
+            ) VALUES (
+                '{self.get_date()}',
+                {self.get_calendar_week()},
+                '{self.get_total_time()}',
+                {self.get_total_distance()},
+                '{self.get_avg_pace()}',
+                {self.get_avg_hr()}
+            );
+        """
+        return insert_sql
 
-# Verwendung der Klasse
-filepath = "data/activities/Running_2024-06-04T13_16_40.fit"
-fit_parser = FitFile(filepath)
-#fit_parser.print_data()
+# Beispiel zur Verwendung der Klasse und Einfügen der Daten in die SQLite-Datenbank
+if __name__ == "__main__":
+    # Verbindung zur SQLite-Datenbank herstellen
+    try:
+        conn = sqlite3.connect('fitfile_data.db')
+        print("Verbindung zur SQLite-Datenbank hergestellt.")
+    except Error as e:
+        print(f"Fehler beim Herstellen der Verbindung zur SQLite-Datenbank: {e}")
+    
+    # Erstellen der trainings-Tabelle, falls sie noch nicht existiert
+    create_table_sql = """
+        CREATE TABLE IF NOT EXISTS trainings (
+            activity_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            activity_date DATE,
+            activity_kw INTEGER,
+            activity_duration TIME,
+            activity_total_distance FLOAT,
+            activity_avg_pace TIME,
+            activity_avg_hr INTEGER
+        );
+    """
+    try:
+        c = conn.cursor()
+        c.execute(create_table_sql)
+        print("Tabelle trainings erfolgreich erstellt.")
+    except Error as e:
+        print(f"Fehler beim Erstellen der Tabelle trainings: {e}")
+
+    # Beispiel FitFile einlesen und Daten in die Datenbank einfügen
+    filepath = "data/activities/Running_2024-06-04T13_16_40.fit"
+    fit_parser = FitFile(filepath)
+
+    # SQL-Insert-Anweisung erstellen
+    insert_sql = fit_parser.get_insert_statement()
+
+    # Daten in die Datenbank einfügen
+    try:
+        c.execute(insert_sql)
+        conn.commit()
+        print("Daten erfolgreich in die Datenbank eingefügt.")
+    except Error as e:
+        print(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
+
+    # Verbindung zur Datenbank schließen
+    conn.close()
