@@ -247,9 +247,10 @@ elif option == "Trainingsübersicht":
 
         if uploaded_files:
             for uploaded_file in uploaded_files:
-                fit_parser = FitFile(uploaded_file)
+                fit_parser = ff.FitFile(uploaded_file)
                 insert_sql = fit_parser.get_insert_statement()
-                if insert_sql:
+                if insert_sql: #hier noch eine Abfrage einbauen, ob die Daten schon in der Datenbank sind
+            
                     try:
                         c.execute(insert_sql)
                         conn.commit()
