@@ -19,6 +19,7 @@ from Funktionen import calc_powercurve as cp
 from Funktionen import person_class as pc
 from Funktionen import ekg_class as ekg
 from Funktionen import fit_files as ff
+from Funktionen import tables as tb
 
 st.sidebar.title("Navigation")
 option = st.sidebar.selectbox("Select a page:", ["Home", "Patientendatenbank", "Trainingsübersicht"])
@@ -139,7 +140,7 @@ elif option == "Patientendatenbank":
                 analyze_button = st.button("Herzfrequenzanalyse durchführen")
 
                 if analyze_button:
-                    st.write(max_hr)
+                    st.write("Maximale Herzfrequenz:", max_hr)
                     time_in_zones = pha.analyze_heart_rate(df, max_hr)
                     avg_performance_in_zones = pha.analyze_performance(df)
                     avg_performance_generel = df['PowerOriginal'].mean().round().astype(int)
@@ -230,69 +231,40 @@ elif option == "Patientendatenbank":
 elif option == "Trainingsübersicht":
     st.write("Entwicklung Laufumfang") 
     uploaded_files = st.file_uploader("Choose a .fit file", accept_multiple_files=True)
-    for uploaded_file in uploaded_files:
-        trainings_data = uploaded_file.read()
-        st.write("filename:", uploaded_file.name)
-
-        fit_parser = ff.FitFile(uploaded_file)
-        st.title("FIT-Datei Import und Auswertung")
-
-        # SQLite-Datenbankverbindung
-        conn = sqlite3.connect('fitfile_data.db')
-        c = conn.cursor()
-
-        # Tabelle erstellen, falls sie nicht existiert
-        create_table_sql = """
-            CREATE TABLE IF NOT EXISTS trainings (
-                activity_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                activity_date DATE,
-                activity_kw INTEGER,
-                activity_duration TIME,
-                activity_total_distance FLOAT,
-                activity_avg_pace TIME,
-                activity_avg_hr INTEGER
-            );
-        """
-        c.execute(create_table_sql)
-
-        # Drag and Drop Widget für FIT-Dateien
-        st.sidebar.header("Import FIT-Datei")
-        uploaded_files = st.sidebar.file_uploader("Datei(en) hier ablegen", type=['fit'], accept_multiple_files=True)
-
-        if uploaded_files:
-            for uploaded_file in uploaded_files:
-                fit_parser = FitFile(uploaded_file)
-                insert_sql = fit_parser.get_insert_statement()
-                if insert_sql:
-                    try:
-                        c.execute(insert_sql)
-                        conn.commit()
-                        st.success(f"Daten aus {uploaded_file.name} erfolgreich in die Datenbank eingefügt.")
-                    except Error as e:
-                        st.error(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
-
-        # Verbindung zur Datenbank schließen
-        conn.close()
-
-
-
-    tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
     
-    # Beispiel-Daten für den Laufumfang
-    data = np.random.randint(50, 100, size=(10, 1))  # Zufallsdaten als Beispiel
-    df = pd.DataFrame(data, columns=["Laufumfang"])
+    if uploaded_files:
+        tb.create_table()  # Tabelle erstellen, falls nicht vorhanden
+        for uploaded_file in uploaded_files:
+            st.write("filename:", uploaded_file.name)
+            tb.insert_data(uploaded_file)
+        
+    tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
+
+    # SQLite-Datenbankverbindung
+    conn = sqlite3.connect('fitfile_data.db')
+    c = conn.cursor()
+
+    # Eindeutige Einschränkung hinzufügen
+    create_unique_index_sql = """
+    CREATE UNIQUE INDEX IF NOT EXISTS unique_activity ON trainings(activity_date, activity_duration);
+    """
+    c.execute(create_unique_index_sql)
+    conn.commit()  # Änderungen speichern
+    conn.close()
+
+    # Daten aus der Datenbank abrufen und nach Kalenderwoche aggregieren
+    df = tb.get_training_data()
+
+    # Konvertiere activity_date-Spalte zu datetime
+    df['activity_date'] = pd.to_datetime(df['activity_date']).dt.date
 
     # Berechnung der prozentualen Veränderung
-    df["Veränderung (%)"] = df["Laufumfang"].pct_change() * 100
+    df["Veränderung (%)"] = df["total_distance"].pct_change() * 100
     df["Veränderung (%)"] = df["Veränderung (%)"].fillna(0)  # Ersetze NaN mit 0 für den ersten Wert
 
-    # Darstellung der Daten im Tab "Data"
-    #tab2.subheader("Trainingsdaten")
-    #tab2.write(df)
-
     # Lineare Regression für die Trendlinie
-    X = np.arange(len(df)).reshape(-1, 1)  # Trainingseinheiten als Feature
-    y = df["Laufumfang"].values  # Laufumfang als Zielwert
+    X = np.arange(len(df)).reshape(-1, 1)  # Kalenderwochen als Feature
+    y = df["total_distance"].values  # Laufumfänge als Zielwert
     model = LinearRegression().fit(X, y)
     trend = model.predict(X)
 
@@ -303,8 +275,8 @@ elif option == "Trainingsübersicht":
 
     # Balkendiagramm
     fig.add_trace(go.Bar(
-        x=df.index,
-        y=df["Laufumfang"],
+        x=df["activity_kw"],
+        y=df["total_distance"],
         text=df["Veränderung (%)"].apply(lambda x: f'{x:.2f}%'),
         textposition='auto',
         name="Laufumfang"
@@ -312,7 +284,7 @@ elif option == "Trainingsübersicht":
 
     # Trendlinie
     fig.add_trace(go.Scatter(
-        x=df.index,
+        x=df["activity_kw"],
         y=trend,
         mode='lines',
         name='Trendlinie',
@@ -322,23 +294,36 @@ elif option == "Trainingsübersicht":
     fig.update_layout(
         title="Entwicklung des Laufumfangs mit prozentualer Veränderung",
         xaxis_title="Kalenderwoche",
-        yaxis_title="Laufumfang",
+        yaxis_title="Laufumfang (km)",
         template="plotly_white"
     )
 
     tab1.plotly_chart(fig)
 
-    # Heutiges Datum ermitteln
+   # Heutiges Datum ermitteln
     today = datetime.date.today()
 
     # Startdatum für den Datepicker
-    start_date = datetime.date(2000, 1, 1)
+    start_date = datetime.date(2024, 1, 1)
 
-# Datepicker zur Auswahl eines Datums im angegebenen Zeitraum
+    # Datepicker zur Auswahl eines Datums im angegebenen Zeitraum
     selected_date = tab2.date_input(
         "Wähle ein Datum aus:",
-        (start_date, today),  # Standardmäßig von 1. Januar 2000 bis heute
-        start_date,  # Standardwert ist der 1. Januar 2000
+        (start_date, today),  # Standardmäßig von 1. Januar 2024 bis heute
+        start_date,  # Standardwert ist der 1. Januar 2024
         today,  # Enddatum ist das heutige Datum
         format="DD.MM.YYYY"  # Format des Datumsinputs
     )
+
+    # Anzeigen der Daten
+    if isinstance(selected_date, tuple):
+        start_date = selected_date[0]  # Umwandlung in datetime.date
+        end_date = selected_date[1]  # Umwandlung in datetime.date
+        df_selected = df[(df["activity_date"] >= start_date) & 
+                        (df["activity_date"] <= end_date)]
+        tab2.write(df_selected)
+    else:
+        tab2.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
+        
+
+    
