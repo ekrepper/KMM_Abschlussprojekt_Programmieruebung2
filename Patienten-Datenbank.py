@@ -12,6 +12,7 @@ from sklearn.linear_model import LinearRegression
 import datetime
 import sqlite3
 from sqlite3 import Error
+import time
 
 
 #from A_my_streamlit import read_data as rd
@@ -22,7 +23,7 @@ from Funktionen import ekg_class as ekg
 from Funktionen import fit_files as ff
 from Funktionen import tables as tb
 
-
+st.set_page_config(layout="centered", page_title="Sports & Health Database", page_icon="⚕️")
 st.sidebar.title("Navigation")
 option = st.sidebar.selectbox("Select a page:", ["Home", "Patientendatenbank", "Trainingsübersicht"])
 
@@ -34,6 +35,99 @@ sys.path.insert(0, parentdir)
 # Eine Überschrift der ersten Ebene
 if option == "Home":
     st.title = "Home"
+
+    # Set page configuration
+    
+    page_title="Sports & Health Database",
+    page_icon="⚕️",
+    layout="centered",
+    initial_sidebar_state="collapsed"
+
+
+    # Add custom CSS for animations
+    st.markdown("""
+    <style>
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css');
+
+    .header {
+        font-size: 3em;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 50px;
+        color: #4CAF50;
+        animation: fadeInDown 2s;
+    }
+
+    .subheader {
+        font-size: 1.5em;
+        text-align: center;
+        margin-top: 20px;
+        color: #666;
+        animation: fadeInUp 2s;
+    }
+
+    .bounce-button {
+        display: block;
+        margin: 30px auto;
+        padding: 10px 20px;
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #fff;
+        background-color: #4CAF50;
+        border: none;
+        border-radius: 5px;
+        animation: bounce 2s infinite;
+        cursor: pointer;
+    }
+
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-30px);
+        }
+        60% {
+            transform: translateY(-15px);
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Header
+    st.markdown('<div class="header animate__animated animate__fadeInDown">Welcome to NAME XY</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subheader animate__animated animate__fadeInUp">Slogan</div>', unsafe_allow_html=True)
+
+    # Animated button
+    #st.markdown('<button class="bounce-button">Get Started</button>', unsafe_allow_html=True)
+
+    # Adding some interactivity
+    if st.button('Get Started'):
+        # Add a progress bar
+        st.write("Your progress is our progress")
+        progress_bar = st.progress(0)
+
+        for percent_complete in range(100):
+            time.sleep(0.1)  # Simulate a long computation
+            progress_bar.progress(percent_complete + 1)
+        
+    # Adding a delay to simulate loading
+    time.sleep(2)
+    st.write("")
+
+    # Adding some more content
+    st.markdown("""
+    ### Key Features:
+    - **A**: 
+    - **B**:
+    - **C**: 
+    - **D**: 
+    """)
+
+    st.markdown("""
+    #### BLABLABLA
+    """)
+
 
 elif option == "Patientendatenbank":
 
@@ -231,9 +325,15 @@ elif option == "Patientendatenbank":
                     st.plotly_chart(fig)
 
 elif option == "Trainingsübersicht":
-    st.write("Entwicklung Laufumfang") 
+    # Heutiges Datum ermitteln
+    today = datetime.date.today()
+
+    # Startdatum für den Datepicker
+    start_date = datetime.date(2024, 1, 1)
+
+    # Datei-Upload
     uploaded_files = st.file_uploader("Choose a .fit file", accept_multiple_files=True)
-    
+
     # SQLite-Datenbankverbindung
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
@@ -248,10 +348,9 @@ elif option == "Trainingsübersicht":
                     c.execute(insert_sql)
                     conn.commit()
                     st.success(f"Daten aus {uploaded_file.name} erfolgreich in die Datenbank eingefügt.")
-                except Error as e:
+                except sqlite3.Error as e:
                     st.error(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
 
-        
     tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
 
     # Eindeutige Einschränkung hinzufügen
@@ -268,13 +367,17 @@ elif option == "Trainingsübersicht":
     # Konvertiere activity_date-Spalte zu datetime
     df['activity_date'] = pd.to_datetime(df['activity_date']).dt.date
 
-    # Berechnung der prozentualen Veränderung
-    df["Veränderung (%)"] = df["total_distance"].pct_change() * 100
-    df["Veränderung (%)"] = df["Veränderung (%)"].fillna(0)  # Ersetze NaN mit 0 für den ersten Wert
+    # Aggregation der Daten nach Kalenderwoche
+    df['activity_kw'] = pd.to_datetime(df['activity_date']).dt.isocalendar().week
+    weekly_data = df.groupby('activity_kw')['total_distance'].sum().reset_index()
+
+    # Berechnung der prozentualen Veränderung zwischen den Kalenderwochen
+    weekly_data["Veränderung (%)"] = weekly_data["total_distance"].pct_change() * 100
+    weekly_data["Veränderung (%)"] = weekly_data["Veränderung (%)"].fillna(0)  # Ersetze NaN mit 0 für den ersten Wert
 
     # Lineare Regression für die Trendlinie
-    X = np.arange(len(df)).reshape(-1, 1)  # Kalenderwochen als Feature
-    y = df["total_distance"].values  # Laufumfänge als Zielwert
+    X = np.arange(len(weekly_data)).reshape(-1, 1)  # Kalenderwochen als Feature
+    y = weekly_data["total_distance"].values  # Laufumfänge als Zielwert
     model = LinearRegression().fit(X, y)
     trend = model.predict(X)
 
@@ -285,16 +388,16 @@ elif option == "Trainingsübersicht":
 
     # Balkendiagramm
     fig.add_trace(go.Bar(
-        x=df["activity_kw"],
-        y=df["total_distance"],
-        text=df["Veränderung (%)"].apply(lambda x: f'{x:.2f}%'),
+        x=weekly_data["activity_kw"],
+        y=weekly_data["total_distance"],
+        text=weekly_data["Veränderung (%)"].apply(lambda x: f'{x:.2f}%'),
         textposition='auto',
         name="Laufumfang"
     ))
 
     # Trendlinie
     fig.add_trace(go.Scatter(
-        x=df["activity_kw"],
+        x=weekly_data["activity_kw"],
         y=trend,
         mode='lines',
         name='Trendlinie',
@@ -309,12 +412,6 @@ elif option == "Trainingsübersicht":
     )
 
     tab1.plotly_chart(fig)
-
-# Heutiges Datum ermitteln
-    today = datetime.date.today()
-
-    # Startdatum für den Datepicker
-    start_date = datetime.date(2024, 1, 1)
 
     # Datepicker zur Auswahl eines Datums im angegebenen Zeitraum
     selected_date = tab2.date_input(
@@ -334,4 +431,3 @@ elif option == "Trainingsübersicht":
         tab2.write(df_selected)
     else:
         tab2.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
-    
