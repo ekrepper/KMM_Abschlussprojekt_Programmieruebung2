@@ -13,6 +13,7 @@ import datetime
 import sqlite3
 from sqlite3 import Error
 
+
 #from A_my_streamlit import read_data as rd
 from Funktionen import performance_hr_analysis as pha 
 from Funktionen import calc_powercurve as cp
@@ -20,6 +21,7 @@ from Funktionen import person_class as pc
 from Funktionen import ekg_class as ekg
 from Funktionen import fit_files as ff
 from Funktionen import tables as tb
+
 
 st.sidebar.title("Navigation")
 option = st.sidebar.selectbox("Select a page:", ["Home", "Patientendatenbank", "Trainingsübersicht"])
@@ -218,17 +220,25 @@ elif option == "Trainingsübersicht":
     st.write("Entwicklung Laufumfang") 
     uploaded_files = st.file_uploader("Choose a .fit file", accept_multiple_files=True)
     
-    if uploaded_files:
-        tb.create_table()  # Tabelle erstellen, falls nicht vorhanden
-        for uploaded_file in uploaded_files:
-            st.write("filename:", uploaded_file.name)
-            tb.insert_data(uploaded_file)
-        
-    tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
-
     # SQLite-Datenbankverbindung
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
+
+    if uploaded_files:
+        tb.create_table()  # Tabelle erstellen, falls nicht vorhanden
+        for uploaded_file in uploaded_files:
+            fit_parser = ff.FitFile(uploaded_file)
+            insert_sql = fit_parser.get_insert_statement()
+            if insert_sql:
+                try:
+                    c.execute(insert_sql)
+                    conn.commit()
+                    st.success(f"Daten aus {uploaded_file.name} erfolgreich in die Datenbank eingefügt.")
+                except Error as e:
+                    st.error(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
+
+        
+    tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
 
     # Eindeutige Einschränkung hinzufügen
     create_unique_index_sql = """
@@ -286,7 +296,7 @@ elif option == "Trainingsübersicht":
 
     tab1.plotly_chart(fig)
 
-   # Heutiges Datum ermitteln
+# Heutiges Datum ermitteln
     today = datetime.date.today()
 
     # Startdatum für den Datepicker
@@ -310,6 +320,4 @@ elif option == "Trainingsübersicht":
         tab2.write(df_selected)
     else:
         tab2.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
-        
-
     
