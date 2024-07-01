@@ -19,26 +19,54 @@ class EKGdata:
         self.heartrate = self.calc_heartrate()
         self.max_heartrate = self.calc_max_heartrate()
         self.heartrate_time = self.calc_heartrate_time()
-        self.duration = self.df["Zeit in ms"][len(self.df["Zeit in ms"]) - 1] / 1000
+        self.duration = self.calculate_duration()
         
+    def calculate_duration(self):
+        # Calculate the duration in seconds by subtracting the first timestamp from the last
+        duration_in_ms = self.df["Zeit in ms"].iloc[-1] - self.df["Zeit in ms"].iloc[0]
+        return duration_in_ms / 1000  # Convert milliseconds to seconds
 
+    def make_plot(self, start_time=None, end_time=None):
+        if start_time is not None and end_time is not None:
+            mask = (self.df["Zeit in ms"] >= start_time * 1000) & (self.df["Zeit in ms"] <= end_time * 1000)
+            df_filtered = self.df[mask].reset_index(drop=True)
+            peaks_filtered = self.find_peaks(df_filtered["Messwerte in mV"].copy(), 340)
+            heartrate_time_filtered = self.calc_heartrate_time_filtered(df_filtered)
+        else:
+            df_filtered = self.df_plot
+            peaks_filtered = self.peaks_plot
+            heartrate_time_filtered = self.heartrate_time
 
-    def make_plot(self):
-        # Create a line plot of the first 10,000 values with time on the x-axis
-        fig = px.line(self.df_plot, x="Zeit in ms", y="Messwerte in mV", title="EKG Plot")
-        fig2 = px.line(self.heartrate_time, x="Time in s", y="Heartrate", title="Herzfrequenz über die Zeit")
+        df_filtered["Zeit in s"] = df_filtered["Zeit in ms"] / 1000
+
+        fig = px.line(df_filtered, x="Zeit in s", y="Messwerte in mV", title="EKG Plot")
+        fig2 = px.line(heartrate_time_filtered, x="Time in s", y="Heartrate", title="Herzfrequenz über die Zeit")
+
+        fig2.update_layout(xaxis_title="Zeit in s", yaxis_title="Herzfrequenz")
         
+        if len(peaks_filtered) > 0:
+            peaks_x = df_filtered["Zeit in s"].iloc[peaks_filtered]
+            peaks_y = df_filtered["Messwerte in mV"].iloc[peaks_filtered]
+            fig.add_trace(go.Scatter(x=peaks_x, y=peaks_y, mode='markers+text', name='Peaks', text=["R"]*len(peaks_x),
+                                     textposition="top center", marker=dict(color='red', size=10)))
 
-        # Add peaks to the plot
-        peaks_x = self.df_plot["Zeit in ms"][self.peaks_plot]
-        peaks_y = self.df_plot["Messwerte in mV"][self.peaks_plot]
-        fig.add_trace(go.Scatter(x=peaks_x, y=peaks_y, mode='markers+text', name='Peaks', text=["R"]*len(peaks_x),
-                                 textposition="top center", marker=dict(color='red', size=10)))
-
-        # Display the plot in Streamlit
         st.plotly_chart(fig)
         st.plotly_chart(fig2)
 
+    def calc_heartrate_time_filtered(self, df_filtered):
+        peaks_filtered = self.find_peaks(df_filtered["Messwerte in mV"].copy(), 340)
+        if len(peaks_filtered) > 1:
+            t_puls_filtered = np.diff(df_filtered["Zeit in ms"].iloc[peaks_filtered])
+            heartrate_filtered = (1 / t_puls_filtered) * 60 * 1000
+            timehr_filtered = df_filtered["Zeit in ms"].iloc[peaks_filtered[:-1]]
+            data_filtered = {"Heartrate": heartrate_filtered, "Time in s": timehr_filtered / 1000}
+            heartrate_time_filtered = pd.DataFrame(data_filtered)
+        else:
+            heartrate_time_filtered = pd.DataFrame({"Heartrate": [], "Time in s": []})
+
+        return heartrate_time_filtered
+    
+        
     @staticmethod
     def load_by_id(id):
         with open("data/person_db.json") as file:

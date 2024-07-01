@@ -88,9 +88,12 @@ elif option == "Patientendatenbank":
         ekg_tests = person_instance.ekg_tests
 
         if ekg_tests:
-            ekg_options = ["Wählen Sie einen Test aus"] + [f"Test-ID {ekg['id']}; Datum: {ekg['date']}" for ekg in ekg_tests]
+            ekg_objects = [ekg.EKGdata(ekg_test) for ekg_test in ekg_tests]
+            ekg_options = ["Wählen Sie einen Test aus"] + [
+                f"Test-ID {ekg_obj.id}; Datum: {ekg_obj.date}; Dauer: {ekg_obj.duration:.2f} s" for ekg_obj in ekg_objects]
         else:
             ekg_options = ["Noch keine EKG-Daten vorhanden"]
+                  
 
         selected_ekg = st.selectbox("Wählen Sie einen EKG-Test aus", options=ekg_options)
 
@@ -101,10 +104,21 @@ elif option == "Patientendatenbank":
             if ekg_data:
                 st.write(f"Durchschnittliche Herzfrequenz: {ekg_data.heartrate:.2f} bpm")
                 ekg_data.make_plot()
-            
-            else:
-                st.write("Keine EKG-Daten gefunden.")
 
+                # Slider für Zeitbereich hinzufügen
+                max_duration = float(ekg_data.duration)
+                start_time = st.slider(
+                    "Wählen Sie den Startzeitpunkt für den Plot (in Sekunden):",
+                    0.0, max_duration - 30.0, 0.0, 0.1
+                )
+
+                end_time = start_time + 30.0
+                st.write(f"Plot von {start_time:.1f} s bis {end_time:.1f} s")
+                ekg_data.make_plot(start_time, end_time)
+
+        else:
+            st.write("Keine EKG-Daten gefunden.")
+                
         
         # Prüfen, ob ein Patient ausgewählt wurde und Leistungstest laden
         intervall_tests = person_instance.intervall_tests
