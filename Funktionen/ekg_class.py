@@ -42,7 +42,7 @@ class EKGdata:
         fig = px.line(df_filtered, x="Zeit in s", y="Messwerte in mV", title="EKG Plot")
         fig2 = px.line(heartrate_time_filtered, x="Time in s", y="Heartrate", title="Herzfrequenz über die Zeit")
 
-        fig2.update_layout(yaxis_title="Herzfrequenz")
+        fig2.update_layout(xaxis_title="Zeit in s", yaxis_title="Herzfrequenz")
         
         if len(peaks_filtered) > 0:
             peaks_x = df_filtered["Zeit in s"].iloc[peaks_filtered]
