@@ -123,6 +123,8 @@ if option == "Home":
     - **C**: 
     - **D**: 
     """)
+    
+    st.logo('HEALTHCOACH.png')
 
     st.markdown("""
     #### BLABLABLA
@@ -325,109 +327,143 @@ elif option == "Patientendatenbank":
                     st.plotly_chart(fig)
 
 elif option == "Trainingsübersicht":
-    # Heutiges Datum ermitteln
-    today = datetime.date.today()
+    # Auswahlmöglichkeiten in der Seitenleiste
+        option = st.sidebar.radio("Trainingsübersicht", ["Entwicklung Laufumfang", "Bestleistungen"])
 
-    # Startdatum für den Datepicker
-    start_date = datetime.date(2024, 1, 1)
+        if option == "Entwicklung Laufumfang":
+        # Heutiges Datum ermitteln
+            today = datetime.date.today()
 
-    # Datei-Upload
-    uploaded_files = st.file_uploader("Choose a .fit file", accept_multiple_files=True)
+            # Startdatum für den Datepicker
+            start_date = datetime.date(2024, 1, 1)
 
-    # SQLite-Datenbankverbindung
-    conn = sqlite3.connect('fitfile_data.db')
-    c = conn.cursor()
+            # Datei-Upload
+            uploaded_files = st.file_uploader("Choose a .fit file", accept_multiple_files=True)
 
-    if uploaded_files:
-        tb.create_table()  # Tabelle erstellen, falls nicht vorhanden
-        for uploaded_file in uploaded_files:
-            fit_parser = ff.FitFile(uploaded_file)
-            insert_sql = fit_parser.get_insert_statement()
-            if insert_sql:
-                try:
-                    c.execute(insert_sql)
-                    conn.commit()
-                    st.success(f"Daten aus {uploaded_file.name} erfolgreich in die Datenbank eingefügt.")
-                except sqlite3.Error as e:
-                    st.error(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
+            # SQLite-Datenbankverbindung
+            conn = sqlite3.connect('fitfile_data.db')
+            c = conn.cursor()
 
-    tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
+            if uploaded_files:
+                tb.create_table()  # Tabelle erstellen, falls nicht vorhanden
+                for uploaded_file in uploaded_files:
+                    fit_parser = ff.FitFile(uploaded_file)
+                    insert_sql = fit_parser.get_insert_statement()
+                    if insert_sql:
+                        try:
+                            c.execute(insert_sql)
+                            conn.commit()
+                            st.success(f"Daten aus {uploaded_file.name} erfolgreich in die Datenbank eingefügt.")
+                        except sqlite3.Error as e:
+                            st.error(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
 
-    # Eindeutige Einschränkung hinzufügen
-    create_unique_index_sql = """
-    CREATE UNIQUE INDEX IF NOT EXISTS unique_activity ON trainings(activity_date, activity_duration);
-    """
-    c.execute(create_unique_index_sql)
-    conn.commit()  # Änderungen speichern
-    conn.close()
+            tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
 
-    # Daten aus der Datenbank abrufen und nach Kalenderwoche aggregieren
-    df = tb.get_training_data()
+            # Eindeutige Einschränkung hinzufügen
+            create_unique_index_sql = """
+            CREATE UNIQUE INDEX IF NOT EXISTS unique_activity ON trainings(activity_date, activity_duration);
+            """
+            c.execute(create_unique_index_sql)
+            conn.commit()  # Änderungen speichern
+            conn.close()
 
-    # Konvertiere activity_date-Spalte zu datetime
-    df['activity_date'] = pd.to_datetime(df['activity_date']).dt.date
+            # Daten aus der Datenbank abrufen und nach Kalenderwoche aggregieren
+            df = tb.get_training_data()
 
-    # Aggregation der Daten nach Kalenderwoche
-    df['activity_kw'] = pd.to_datetime(df['activity_date']).dt.isocalendar().week
-    weekly_data = df.groupby('activity_kw')['total_distance'].sum().reset_index()
+            # Konvertiere activity_date-Spalte zu datetime
+            df['activity_date'] = pd.to_datetime(df['activity_date']).dt.date
 
-    # Berechnung der prozentualen Veränderung zwischen den Kalenderwochen
-    weekly_data["Veränderung (%)"] = weekly_data["total_distance"].pct_change() * 100
-    weekly_data["Veränderung (%)"] = weekly_data["Veränderung (%)"].fillna(0)  # Ersetze NaN mit 0 für den ersten Wert
+            # Aggregation der Daten nach Kalenderwoche
+            df['activity_kw'] = pd.to_datetime(df['activity_date']).dt.isocalendar().week
+            weekly_data = df.groupby('activity_kw')['total_distance'].sum().reset_index()
 
-    # Lineare Regression für die Trendlinie
-    X = np.arange(len(weekly_data)).reshape(-1, 1)  # Kalenderwochen als Feature
-    y = weekly_data["total_distance"].values  # Laufumfänge als Zielwert
-    model = LinearRegression().fit(X, y)
-    trend = model.predict(X)
+            # Berechnung der prozentualen Veränderung zwischen den Kalenderwochen
+            weekly_data["Veränderung (%)"] = weekly_data["total_distance"].pct_change() * 100
+            weekly_data["Veränderung (%)"] = weekly_data["Veränderung (%)"].fillna(0)  # Ersetze NaN mit 0 für den ersten Wert
 
-    # Darstellung des Diagramms im Tab "Chart"
-    tab1.subheader("Entwicklung Laufumfang")
+            # Lineare Regression für die Trendlinie
+            X = np.arange(len(weekly_data)).reshape(-1, 1)  # Kalenderwochen als Feature
+            y = weekly_data["total_distance"].values  # Laufumfänge als Zielwert
+            model = LinearRegression().fit(X, y)
+            trend = model.predict(X)
 
-    fig = go.Figure()
+            # Darstellung des Diagramms im Tab "Chart"
+            tab1.subheader("Entwicklung Laufumfang")
 
-    # Balkendiagramm
-    fig.add_trace(go.Bar(
-        x=weekly_data["activity_kw"],
-        y=weekly_data["total_distance"],
-        text=weekly_data["Veränderung (%)"].apply(lambda x: f'{x:.2f}%'),
-        textposition='auto',
-        name="Laufumfang"
-    ))
+            fig = go.Figure()
 
-    # Trendlinie
-    fig.add_trace(go.Scatter(
-        x=weekly_data["activity_kw"],
-        y=trend,
-        mode='lines',
-        name='Trendlinie',
-        line=dict(color='firebrick', width=2)
-    ))
+            # Balkendiagramm
+            fig.add_trace(go.Bar(
+                x=weekly_data["activity_kw"],
+                y=weekly_data["total_distance"],
+                text=weekly_data["Veränderung (%)"].apply(lambda x: f'{x:.2f}%'),
+                textposition='auto',
+                name="Laufumfang"
+            ))
 
-    fig.update_layout(
-        title="Entwicklung des Laufumfangs mit prozentualer Veränderung",
-        xaxis_title="Kalenderwoche",
-        yaxis_title="Laufumfang (km)",
-        template="plotly_white"
-    )
+            # Trendlinie
+            fig.add_trace(go.Scatter(
+                x=weekly_data["activity_kw"],
+                y=trend,
+                mode='lines',
+                name='Trendlinie',
+                line=dict(color='firebrick', width=2)
+            ))
 
-    tab1.plotly_chart(fig)
+            fig.update_layout(
+                title="Entwicklung des Laufumfangs mit prozentualer Veränderung",
+                xaxis_title="Kalenderwoche",
+                yaxis_title="Laufumfang (km)",
+                template="plotly_white"
+            )
 
-    # Datepicker zur Auswahl eines Datums im angegebenen Zeitraum
-    selected_date = tab2.date_input(
-        "Wähle ein Datum aus:",
-        (start_date, today),  # Standardmäßig von 1. Januar 2024 bis heute
-        start_date,  # Standardwert ist der 1. Januar 2024
-        today,  # Enddatum ist das heutige Datum
-        format="DD.MM.YYYY"  # Format des Datumsinputs
-    )
+            tab1.plotly_chart(fig)
 
-    # Anzeigen der Daten
-    if isinstance(selected_date, tuple):
-        start_date = selected_date[0]  # Umwandlung in datetime.date
-        end_date = selected_date[1]  # Umwandlung in datetime.date
-        df_selected = df[(df["activity_date"] >= start_date) & 
-                        (df["activity_date"] <= end_date)]
-        tab2.write(df_selected)
-    else:
-        tab2.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
+            # Datepicker zur Auswahl eines Datums im angegebenen Zeitraum
+            selected_date = tab2.date_input(
+                "Wähle ein Datum aus:",
+                (start_date, today),  # Standardmäßig von 1. Januar 2024 bis heute
+                start_date,  # Standardwert ist der 1. Januar 2024
+                today,  # Enddatum ist das heutige Datum
+                format="DD.MM.YYYY"  # Format des Datumsinputs
+            )
+
+            # Anzeigen der Daten
+            if isinstance(selected_date, tuple):
+                start_date = selected_date[0]  # Umwandlung in datetime.date
+                end_date = selected_date[1]  # Umwandlung in datetime.date
+                df_selected = df[(df["activity_date"] >= start_date) & 
+                                (df["activity_date"] <= end_date)]
+                tab2.write(df_selected)
+            else:
+                tab2.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
+
+        if option == "Bestleistungen":
+            st.header("Bestleistungen im Laufen")
+
+            st.subheader("Neue Bestleistung hinzufügen")
+
+            strecken = ["3000m", "5000m", "5 km Straße", "10.000m", "10 km Straße", "Halbmarathon", "Andere"]
+            strecke = st.selectbox("Strecke", strecken)
+            if strecke == "Andere":
+                strecke = st.text_input("Gib die Strecke ein:")
+
+            zeit = st.text_input("Zeit HH:MM:SS")
+            datum = st.date_input("Datum")
+
+            if st.button("Bestleistung speichern"):
+                if strecke and zeit and datum:
+                    tb.insert_bestleistung(strecke, zeit, datum)
+                    st.success("Bestleistung gespeichert!")
+                else:
+                    st.error("Bitte alle Felder ausfüllen!")
+
+            # Bestehende Bestleistungen anzeigen
+            st.subheader("Bestehende Bestleistungen")
+
+            bestleistungen_df = tb.get_bestleistungen()
+
+            for index, row in bestleistungen_df.iterrows():
+                st.write(f"**{row['strecke']}**: {row['zeit']} (am {row['datum']})")
+
+            
