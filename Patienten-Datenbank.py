@@ -36,9 +36,6 @@ sys.path.insert(0, parentdir)
 if option == "Home":
     st.title = "Home"
  
-    image = Image.open("data/screenshots/logosw.jpg")
-    st.image(image, caption="Die 3 Creator (Lisi, Markus, Anna)")
-    st.write("Dies ist die Startseite Ihrer App zur Überwachung der Herzgesundheit und Ihrer Leistung. Nutzen Sie die Navigation auf der linken Seite, um verschiedene Funktionen der App zu erkunden.")
 
     # Set page configuration
     
@@ -99,8 +96,11 @@ if option == "Home":
     """, unsafe_allow_html=True)
 
     # Header
-    st.markdown('<div class="header animate__animated animate__fadeInDown">Welcome to NAME XY</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subheader animate__animated animate__fadeInUp">Slogan</div>', unsafe_allow_html=True)
+    st.markdown('<div class="header animate__animated animate__fadeInDown">Welcome to VIECHCOACH</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subheader animate__animated animate__fadeInUp">Wir machen ein wahres VIECH aus Dir!</div>', unsafe_allow_html=True)
+
+    image = Image.open("data/screenshots/logosw.jpg")
+    st.image(image, caption="Die 3 Creators (Lisi, Markus, Anna)")
 
     # Animated button
     #st.markdown('<button class="bounce-button">Get Started</button>', unsafe_allow_html=True)
@@ -116,22 +116,24 @@ if option == "Home":
             progress_bar.progress(percent_complete + 1)
         
     # Adding a delay to simulate loading
-    time.sleep(2)
-    st.write("")
+        time.sleep(2)
+    # Display the prompt after loading
+        st.write("Was sitzt du hier noch vorm Computer? Geh raus und beweg dich!")
 
     # Adding some more content
     st.markdown("""
-    ### Key Features:
-    - **A**: 
-    - **B**:
-    - **C**: 
-    - **D**: 
+    ### Unser Ziel:
+    - **Dein Herz so stark zu machen, wie das eines Blauwals!** 
+    - **Deine Ausdauer so auf Vordermann zu bringen, wie die eines Dromedars!**
+    - **Dich schnell zu machen, wie ein Gepard!**
+    - **Sodass du ein Allesfresser werden kannst, wie ein Wildschwein!**
     """)
     
     st.logo('HEALTHCOACH.png')
 
     st.markdown("""
-    #### BLABLABLA
+    #### Mit dieser App wirst auch du zum Viech! 
+    ###### Füttere in der linken Seitenleiste der Trainingsübersicht deine Trainingsdaten und lasse dein inneres Viech wachsen!
     """)
 
 
