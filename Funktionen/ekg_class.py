@@ -12,9 +12,7 @@ class EKGdata:
         self.date = ekg_dict["date"]
         self.data = ekg_dict["result_link"]
         self.df = pd.read_csv(self.data, sep='\t', header=None, names=['Messwerte in mV', 'Zeit in ms'])
-        #self.df_plot = self.df.head(10000)  # Limit to the first 10,000 data points
         self.peaks = self.find_peaks(self.df["Messwerte in mV"].copy(), 340)
-        #self.peaks_plot = self.find_peaks(self.df_plot["Messwerte in mV"].copy(), 340)
         self.t_puls = self.calc_tpuls()   
         self.heartrate = self.calc_heartrate()
         self.max_heartrate = self.calc_max_heartrate()
