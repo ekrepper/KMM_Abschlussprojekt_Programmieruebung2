@@ -24,9 +24,9 @@ from Funktionen import ekg_class as ekg
 from Funktionen import fit_files as ff
 from Funktionen import tables as tb
 
-st.set_page_config(layout="centered", page_title="Sports & Health Database", page_icon="⚕️")
-st.sidebar.title("Navigation")
-option = st.sidebar.selectbox("Select a page:", ["Home", "Patientendatenbank", "Trainingsübersicht"])
+st.set_page_config(layout="centered", page_title="Sports & Health Database", page_icon="🏃‍♀️")
+st.sidebar.title("🌐Navigation")
+option = st.sidebar.selectbox("Select a page:", ["🏠Home", "🏥Patientendatenbank", "🏃Trainingsübersicht"])
 
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -130,7 +130,7 @@ if option == "Home":
     - **Sodass du ein Allesfresser werden kannst, wie ein Wildschwein!**
     """)
     
-    st.logo('HEALTHCOACH.png')
+    #st.logo('HEALTHCOACH.png')
 
     st.markdown("""
     #### Mit dieser App wirst auch du zum Viech! 
@@ -176,7 +176,7 @@ if option == "Home":
         random_phrase = random.choice(phrases)
         st.write(f"Motivation des Tages: {random_phrase}")
 
-elif option == "Patientendatenbank":
+elif option == "🏥Patientendatenbank":
 
     st.write("# PATIENTEN-DATENBANK")
 
@@ -371,7 +371,7 @@ elif option == "Patientendatenbank":
 
                     st.plotly_chart(fig)
 
-elif option == "Trainingsübersicht":
+elif option == "🏃Trainingsübersicht":
     # Auswahlmöglichkeiten in der Seitenleiste
         option = st.sidebar.radio("Trainingsübersicht", ["Entwicklung Laufumfang"])
 
@@ -476,14 +476,27 @@ elif option == "Trainingsübersicht":
             )
 
             # Anzeigen der Daten
-            try: 
+            df_overview = tb.get_overview_data()
+            
+            try:
                 if isinstance(selected_date, tuple):
                     start_date = selected_date[0]  # Umwandlung in datetime.date
                     end_date = selected_date[1]  # Umwandlung in datetime.date
-                    df_selected = df[(df["activity_date"] >= start_date) & 
-                                    (df["activity_date"] <= end_date)]
-                    tab2.write(df_selected)
-            except:
-                tab2.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
 
-        
+                    # Sicherstellen, dass activity_date im datetime.date-Format ist
+                    df_overview['activity_date'] = pd.to_datetime(df_overview['activity_date']).dt.date
+                    
+                    # Filtern der Datenframes nach dem ausgewählten Datumbereich
+                    df_selected = df_overview[(df_overview['activity_date'] >= start_date) & 
+                                            (df_overview['activity_date'] <= end_date)]
+
+                    summary_data = tb.get_summary_data(start_date, end_date)
+
+                    tab2.write(df_selected)
+                    tab2.write(summary_data)
+
+                    
+                else:
+                    st.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
+            except Exception as e:
+                tab2.write(f"Fehler - bitte gültigen Zeitraum auswählen! Fehler: {str(e)}")
