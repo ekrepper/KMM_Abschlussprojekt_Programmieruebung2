@@ -32,6 +32,10 @@ sys.path.insert(0, parentdir)
 # Eine Überschrift der ersten Ebene
 if option == "Home":
     st.title = "Home"
+ 
+    image = Image.open("data/screenshots/logosw.jpg")
+    st.image(image, caption="Die 3 Creator (Lisi, Markus, Anna)")
+    st.write("Dies ist die Startseite Ihrer App zur Überwachung der Herzgesundheit und Ihrer Leistung. Nutzen Sie die Navigation auf der linken Seite, um verschiedene Funktionen der App zu erkunden.")
 
 elif option == "Patientendatenbank":
 
