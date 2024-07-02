@@ -13,6 +13,7 @@ import datetime
 import sqlite3
 from sqlite3 import Error
 import time
+import random
 
 
 #from A_my_streamlit import read_data as rd
@@ -23,9 +24,9 @@ from Funktionen import ekg_class as ekg
 from Funktionen import fit_files as ff
 from Funktionen import tables as tb
 
-st.set_page_config(layout="centered", page_title="Sports & Health Database", page_icon="⚕️")
-st.sidebar.title("Navigation")
-option = st.sidebar.selectbox("Select a page:", ["Home", "Patientendatenbank", "Trainingsübersicht"])
+st.set_page_config(layout="centered", page_title="Sports & Health Database", page_icon="🏃‍♀️")
+st.sidebar.title("🌐Navigation")
+option = st.sidebar.selectbox("Select a page:", ["🏠Home", "🏥Patientendatenbank", "🏃Trainingsübersicht"])
 
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -33,8 +34,9 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir) 
 
 # Eine Überschrift der ersten Ebene
-if option == "Home":
-    st.title = "Home"
+if option == "🏠Home":
+    st.title = "🏠Home"
+ 
 
     # Set page configuration
     
@@ -95,8 +97,11 @@ if option == "Home":
     """, unsafe_allow_html=True)
 
     # Header
-    st.markdown('<div class="header animate__animated animate__fadeInDown">Welcome to NAME XY</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subheader animate__animated animate__fadeInUp">Slogan</div>', unsafe_allow_html=True)
+    st.markdown('<div class="header animate__animated animate__fadeInDown">Welcome to VIECHCOACH</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subheader animate__animated animate__fadeInUp">Wir machen ein wahres VIECH aus Dir!</div>', unsafe_allow_html=True)
+
+    image = Image.open("data/screenshots/logosw.jpg")
+    st.image(image, caption="Die 3 Creators (Lisi, Markus, Anna)")
 
     # Animated button
     #st.markdown('<button class="bounce-button">Get Started</button>', unsafe_allow_html=True)
@@ -112,26 +117,66 @@ if option == "Home":
             progress_bar.progress(percent_complete + 1)
         
     # Adding a delay to simulate loading
-    time.sleep(2)
-    st.write("")
+        time.sleep(2)
+    # Display the prompt after loading
+        st.write("Du hast geklickt, gewartet und... nichts ist passiert! Eine App allein wird keine Wunder vollbringen - für deine Fitness bist du selbst verantwortlich! Also geh raus und mach etwas daraus!")
 
     # Adding some more content
     st.markdown("""
-    ### Key Features:
-    - **A**: 
-    - **B**:
-    - **C**: 
-    - **D**: 
+    ### Unser Ziel:
+    - **Dein Herz so stark zu machen, wie das eines Blauwals!** 
+    - **Deine Ausdauer so auf Vordermann zu bringen, wie die eines Dromedars!**
+    - **Dich schnell zu machen, wie ein Gepard!**
+    - **Sodass du ein Allesfresser werden kannst, wie ein Wildschwein!**
     """)
     
-    st.logo('HEALTHCOACH.png')
+    #st.logo('HEALTHCOACH.png')
 
     st.markdown("""
-    #### BLABLABLA
+    #### Mit dieser App wirst auch du zum Viech! 
+    ###### Füttere in der linken Seitenleiste der Trainingsübersicht deine Trainingsdaten und lasse dein inneres Viech wachsen!
     """)
 
+   
+    # Adding some fun motivational quotes
+    st.markdown("""
+    **Motivationszitate:**
+    - "Ein Löwe läuft nie einfach nur aus Spaß – er hat immer ein Ziel!" 🦁
+    - "Beweg dich wie ein Affe im Dschungel und spüre die Freiheit!" 🐒
+    - "Sei zäh wie ein Bär, stark wie ein Stier und schnell wie ein Gepard!" 🐻🐂🐆
+    """)
 
-elif option == "Patientendatenbank":
+    # Adding some fun facts
+    st.markdown("""
+    **Fun Facts:**
+    - Wusstest du, dass ein Kolibri bis zu 70 Mal pro Sekunde mit den Flügeln schlägt? 🐦
+    - Ein Gepard kann in nur 3 Sekunden von 0 auf 100 km/h beschleunigen! 🐆
+    - Kängurus können nicht rückwärts springen – aber das wirst du mit deinem Training auch nicht müssen! 🦘
+    """)
+
+    # Additional humorous encouragement with interaction
+    st.markdown("""
+    **Zusätzliche Motivation:**
+    - "Wenn du dich wie ein Faultier fühlst, erinnere dich daran: Selbst Faultiere erreichen ihr Ziel – langsam, aber sicher!" 🦥
+    - "Schwitze wie ein Schwein – aber nicht im Schlamm!" 🐷
+    - "Vergiss nicht: Ein gesundes Leben ist ein glückliches Leben – und du wirst zum Viech, das alles schafft!" 💪
+    """)
+
+    # Interactive funny phrases
+    phrases = [
+        "Wie ein Schwein im Trüffelrausch – finde dein inneres Trainingsziel und gib alles! 🐷",
+        "Ein Wildschwein rennt durch den Wald und lässt sich nicht aufhalten – so wirst auch du mit deinem Training unaufhaltsam! 🐗",
+        "Ein Schwein kann dich nicht inspirieren? Dann stell dir vor, wie schnell du bist, wenn du vor einem ausgewachsenen 200-Kilo-Schwein weglaufen willst!",
+        "Es ist Zeit, den inneren Schweinehund zu besiegen und sich wie ein echtes Wildschwein zu fühlen! 🐽",
+        "Vom Büroschwein zum Wildschwein: Diese App wird dich verwandeln!"
+    ]
+
+    # Randomly choose a phrase when clicking the button
+    if st.button('Motiviere mich noch mehr!'):
+        random_phrase = random.choice(phrases)
+        st.write(f"Motivation des Tages: {random_phrase}")
+
+elif option == "🏥Patientendatenbank":
 
     st.write("# PATIENTEN-DATENBANK")
 
@@ -332,9 +377,9 @@ elif option == "Patientendatenbank":
 
                     st.plotly_chart(fig)
 
-elif option == "Trainingsübersicht":
+elif option == "🏃Trainingsübersicht":
     # Auswahlmöglichkeiten in der Seitenleiste
-        option = st.sidebar.radio("Trainingsübersicht", ["Entwicklung Laufumfang", "Bestleistungen"])
+        option = st.sidebar.radio("Trainingsübersicht", ["Entwicklung Laufumfang"])
 
         if option == "Entwicklung Laufumfang":
         # Heutiges Datum ermitteln
@@ -395,8 +440,10 @@ elif option == "Trainingsübersicht":
 
             # Darstellung des Diagramms im Tab "Chart"
             tab1.subheader("Entwicklung Laufumfang")
-
-            fig = go.Figure()
+            try:
+                fig = go.Figure()
+            except:
+                st.write(f"Noch keine Tabelle vorhanden.")
 
             # Balkendiagramm
             fig.add_trace(go.Bar(
@@ -435,41 +482,27 @@ elif option == "Trainingsübersicht":
             )
 
             # Anzeigen der Daten
-            if isinstance(selected_date, tuple):
-                start_date = selected_date[0]  # Umwandlung in datetime.date
-                end_date = selected_date[1]  # Umwandlung in datetime.date
-                df_selected = df[(df["activity_date"] >= start_date) & 
-                                (df["activity_date"] <= end_date)]
-                tab2.write(df_selected)
-            else:
-                tab2.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
-
-        if option == "Bestleistungen":
-            st.header("Bestleistungen im Laufen")
-
-            st.subheader("Neue Bestleistung hinzufügen")
-
-            strecken = ["3000m", "5000m", "5 km Straße", "10.000m", "10 km Straße", "Halbmarathon", "Andere"]
-            strecke = st.selectbox("Strecke", strecken)
-            if strecke == "Andere":
-                strecke = st.text_input("Gib die Strecke ein:")
-
-            zeit = st.text_input("Zeit HH:MM:SS")
-            datum = st.date_input("Datum")
-
-            if st.button("Bestleistung speichern"):
-                if strecke and zeit and datum:
-                    tb.insert_bestleistung(strecke, zeit, datum)
-                    st.success("Bestleistung gespeichert!")
-                else:
-                    st.error("Bitte alle Felder ausfüllen!")
-
-            # Bestehende Bestleistungen anzeigen
-            st.subheader("Bestehende Bestleistungen")
-
-            bestleistungen_df = tb.get_bestleistungen()
-
-            for index, row in bestleistungen_df.iterrows():
-                st.write(f"**{row['strecke']}**: {row['zeit']} (am {row['datum']})")
-
+            df_overview = tb.get_overview_data()
             
+            try:
+                if isinstance(selected_date, tuple):
+                    start_date = selected_date[0]  # Umwandlung in datetime.date
+                    end_date = selected_date[1]  # Umwandlung in datetime.date
+
+                    # Sicherstellen, dass activity_date im datetime.date-Format ist
+                    df_overview['activity_date'] = pd.to_datetime(df_overview['activity_date']).dt.date
+                    
+                    # Filtern der Datenframes nach dem ausgewählten Datumbereich
+                    df_selected = df_overview[(df_overview['activity_date'] >= start_date) & 
+                                            (df_overview['activity_date'] <= end_date)]
+
+                    summary_data = tb.get_summary_data(start_date, end_date)
+
+                    tab2.write(df_selected)
+                    tab2.write(summary_data)
+
+                    
+                else:
+                    st.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
+            except Exception as e:
+                tab2.write(f"Fehler - bitte gültigen Zeitraum auswählen! Fehler: {str(e)}")
