@@ -58,6 +58,43 @@ def get_training_data():
     conn.close()
     return df
 
+def get_overview_data():
+    conn = sqlite3.connect('fitfile_data.db')
+    query = """
+        SELECT 
+            activity_date, 
+            activity_total_distance AS total_distance, 
+            activity_duration AS total_duration, 
+            activity_avg_hr AS avg_hr, 
+            activity_avg_pace AS avg_pace
+        FROM 
+            trainings
+        GROUP BY 
+            activity_date, activity_duration
+        ORDER BY 
+            activity_date, activity_duration 
+    """
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df
+
+def get_summary_data(start_date, end_date):
+    conn = sqlite3.connect('fitfile_data.db')
+    query = f"""
+        SELECT 
+            SUM(activity_total_distance) AS total_distance,
+            SUM(activity_duration) AS total_duration,
+            AVG(activity_avg_pace) AS avg_pace,
+            AVG(activity_avg_hr) AS avg_hr
+        FROM 
+            trainings
+        WHERE 
+            activity_date BETWEEN '{start_date}' AND '{end_date}'
+    """
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df
+
 
 def delete_entry(activity_id):
     conn = sqlite3.connect('fitfile_data.db')
