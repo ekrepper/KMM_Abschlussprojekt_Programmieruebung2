@@ -199,16 +199,22 @@ elif option == "Patientendatenbank":
 
             if ekg_data:
                 st.write(f"Durchschnittliche Herzfrequenz: {ekg_data.heartrate:.2f} bpm")
-                ekg_data.make_plot()
 
                 # Slider für Zeitbereich hinzufügen
-                max_duration = float(ekg_data.duration)
+                max_duration = float(ekg_data.df["Zeit in ms"].iloc[-1]) / 1000 # Maximaler Zeitpunkt in s
+                min_duration = float(ekg_data.df["Zeit in ms"].iloc[0]) / 1000 # Minimaler Zeitpunkt in s
+                #Zeitfenster für den Plot
+                window = st.select_slider(
+                    "Wählen Sie ein Zeitfenster (in Sekunden):",
+                    options=[10, 30, 60, 120, 300],
+                    value=30
+                )
                 start_time = st.slider(
                     "Wählen Sie den Startzeitpunkt für den Plot (in Sekunden):",
-                    0.0, max_duration - 30.0, 0.0, 0.1
+                    min_duration, max_duration - window, min_duration, 0.1 # Slider je nach Startzeitpunkt anwendbar
                 )
 
-                end_time = start_time + 30.0
+                end_time = start_time + window
                 st.write(f"Plot von {start_time:.1f} s bis {end_time:.1f} s")
                 ekg_data.make_plot(start_time, end_time)
 
