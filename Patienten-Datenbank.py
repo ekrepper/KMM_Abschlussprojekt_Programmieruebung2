@@ -328,7 +328,7 @@ elif option == "Patientendatenbank":
 
 elif option == "Trainingsübersicht":
     # Auswahlmöglichkeiten in der Seitenleiste
-        option = st.sidebar.radio("Trainingsübersicht", ["Entwicklung Laufumfang", "Bestleistungen"])
+        option = st.sidebar.radio("Trainingsübersicht", ["Entwicklung Laufumfang"])
 
         if option == "Entwicklung Laufumfang":
         # Heutiges Datum ermitteln
@@ -438,32 +438,4 @@ elif option == "Trainingsübersicht":
             else:
                 tab2.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
 
-        if option == "Bestleistungen":
-            st.header("Bestleistungen im Laufen")
-
-            st.subheader("Neue Bestleistung hinzufügen")
-
-            strecken = ["3000m", "5000m", "5 km Straße", "10.000m", "10 km Straße", "Halbmarathon", "Andere"]
-            strecke = st.selectbox("Strecke", strecken)
-            if strecke == "Andere":
-                strecke = st.text_input("Gib die Strecke ein:")
-
-            zeit = st.text_input("Zeit HH:MM:SS")
-            datum = st.date_input("Datum")
-
-            if st.button("Bestleistung speichern"):
-                if strecke and zeit and datum:
-                    tb.insert_bestleistung(strecke, zeit, datum)
-                    st.success("Bestleistung gespeichert!")
-                else:
-                    st.error("Bitte alle Felder ausfüllen!")
-
-            # Bestehende Bestleistungen anzeigen
-            st.subheader("Bestehende Bestleistungen")
-
-            bestleistungen_df = tb.get_bestleistungen()
-
-            for index, row in bestleistungen_df.iterrows():
-                st.write(f"**{row['strecke']}**: {row['zeit']} (am {row['datum']})")
-
-            
+        
