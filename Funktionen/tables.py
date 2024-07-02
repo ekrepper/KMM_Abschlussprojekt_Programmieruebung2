@@ -75,3 +75,37 @@ def delete_entry(activity_id):
         print(f"Fehler beim Löschen des Eintrags: {e}")
     finally:
         conn.close()
+
+
+#Bestleistungen
+
+def create_database():
+    conn = sqlite3.connect('bestleistungen.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS bestleistungen (
+            id INTEGER PRIMARY KEY,
+            strecke TEXT,
+            zeit TEXT,
+            datum DATE
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+create_database()
+
+# Funktion zum Einfügen der Bestleistung in die Datenbank
+def insert_bestleistung(strecke, zeit, datum):
+    conn = sqlite3.connect('bestleistungen.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO bestleistungen (strecke, zeit, datum) VALUES (?, ?, ?)", (strecke, zeit, datum))
+    conn.commit()
+    conn.close()
+
+# Funktion zum Abrufen der Bestleistungen aus der Datenbank
+def get_bestleistungen():
+    conn = sqlite3.connect('bestleistungen.db')
+    df = pd.read_sql_query("SELECT * FROM bestleistungen", conn)
+    conn.close()
+    return df
