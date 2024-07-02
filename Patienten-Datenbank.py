@@ -389,8 +389,10 @@ elif option == "Trainingsübersicht":
 
             # Darstellung des Diagramms im Tab "Chart"
             tab1.subheader("Entwicklung Laufumfang")
-
-            fig = go.Figure()
+            try:
+                fig = go.Figure()
+            except:
+                st.write(f"Noch keine Tabelle vorhanden.")
 
             # Balkendiagramm
             fig.add_trace(go.Bar(
@@ -429,13 +431,14 @@ elif option == "Trainingsübersicht":
             )
 
             # Anzeigen der Daten
-            if isinstance(selected_date, tuple):
-                start_date = selected_date[0]  # Umwandlung in datetime.date
-                end_date = selected_date[1]  # Umwandlung in datetime.date
-                df_selected = df[(df["activity_date"] >= start_date) & 
-                                (df["activity_date"] <= end_date)]
-                tab2.write(df_selected)
-            else:
+            try: 
+                if isinstance(selected_date, tuple):
+                    start_date = selected_date[0]  # Umwandlung in datetime.date
+                    end_date = selected_date[1]  # Umwandlung in datetime.date
+                    df_selected = df[(df["activity_date"] >= start_date) & 
+                                    (df["activity_date"] <= end_date)]
+                    tab2.write(df_selected)
+            except:
                 tab2.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
 
         
