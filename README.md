@@ -21,3 +21,11 @@
 ### App starten:
 
     Mit dem Befehl streamlit run .\Patienten-Datenbank.py startet die App
+
+### Funktionalitäten der App:
+
+    - Home-Seite (🏠Home): Begrüßung und Motivation, um Nutzer zu sportlicher Aktivität zu inspirieren. Verwendung von Animationen und Zitaten, um die Benutzererfahrung zu verbessern.
+
+    - Patientendatenbank-Seite (🏥Patientendatenbank): Ermöglicht die Auswahl und Anzeige von Patientendaten, einschließlich Herzfrequenzanalysen und Leistungskurven.
+
+    - Trainingsübersicht-Seite (🏃Trainingsübersicht): Zeigt die Entwicklung des Laufumfangs über Wochen anhand von Diagrammen und ermöglicht die Auswahl von Datumsspannen zur detaillierten Anzeige von Trainingsdaten. Neue .Fit Dateinen können über den drag & drop Button hinzugefügt werden.
