@@ -397,7 +397,6 @@ elif option == "🏃Trainingsübersicht":
             if uploaded_files:
                 last_uploaded_file = uploaded_files[-1]
                 st.sidebar.info(f"Last uploaded file: {last_uploaded_file.name}")
-            
             # SQLite-Datenbankverbindung
             conn = sqlite3.connect('fitfile_data.db')
             c = conn.cursor()
@@ -405,6 +404,10 @@ elif option == "🏃Trainingsübersicht":
             if uploaded_files:
                 tb.create_table()  # Tabelle erstellen, falls nicht vorhanden
                 for uploaded_file in uploaded_files:
+                    if not uploaded_file.name.endswith('.fit'):
+                        st.error(f"Die Datei {uploaded_file.name} wird nicht unterstützt. Es werden nur .fit Dateien akzeptiert.")
+                        continue
+
                     fit_parser = ff.FitFile(uploaded_file)
                     insert_sql = fit_parser.get_insert_statement()
                     if insert_sql:
@@ -478,18 +481,6 @@ elif option == "🏃Trainingsübersicht":
             )
 
             tab1.plotly_chart(fig)
-
-            df_trainings_week = tb.get_training_data_by_week(st.number_input("Kalenderwoche eingeben:", min_value=1, max_value=53, value=1))
-
-            #Säulendiagramm der trainings in der ausgewählten Woche
-            fig2 = go.Figure(data=[
-                go.Bar(name='total_distance', x=df_trainings_week['activity_date'], y=df_trainings_week['total_distance'], text=df_trainings_week['total_distance'], textposition='auto')
-            ])
-            fig2.update_layout(barmode='group', xaxis_tickangle=-45, title="Laufumfang pro Tag in der ausgewählten Kalenderwoche")
-            
-
-            tab1.plotly_chart(fig2)
-           
 
             # Datepicker zur Auswahl eines Datums im angegebenen Zeitraum
             selected_date = tab2.date_input(
