@@ -16,4 +16,8 @@
 ### Nötigen Pakete installieren:
 
     Nötige Pakete sind in der Text-Datei requirements.txt angeführt
-    alle Pakete gleichzeitig installieren: pip install -r requirements.txt (in Komandozeile von Windows Powershell)
+    Alle Pakete gleichzeitig installieren: pip install -r requirements.txt (in Komandozeile von Windows Powershell)
+
+### App starten:
+
+    Mit dem Befehl streamlit run .\Patienten-Datenbank.py startet die App
