@@ -471,6 +471,18 @@ elif option == "🏃Trainingsübersicht":
 
             tab1.plotly_chart(fig)
 
+            df_trainings_week = tb.get_training_data_by_week(st.number_input("Kalenderwoche eingeben:", min_value=1, max_value=53, value=1))
+
+            #Säulendiagramm der trainings in der ausgewählten Woche
+            fig2 = go.Figure(data=[
+                go.Bar(name='total_distance', x=df_trainings_week['activity_date'], y=df_trainings_week['total_distance'], text=df_trainings_week['total_distance'], textposition='auto')
+            ])
+            fig2.update_layout(barmode='group', xaxis_tickangle=-45, title="Laufumfang pro Tag in der ausgewählten Kalenderwoche")
+            
+
+            tab1.plotly_chart(fig2)
+           
+
             # Datepicker zur Auswahl eines Datums im angegebenen Zeitraum
             selected_date = tab2.date_input(
                 "Wähle ein Datum aus:",

@@ -58,6 +58,18 @@ def get_training_data():
     conn.close()
     return df
 
+def get_training_data_by_week(week):
+    conn = sqlite3.connect('fitfile_data.db')
+    query = f"""
+        SELECT activity_date, activity_total_distance AS total_distance
+        FROM trainings
+        WHERE activity_kw = {week}
+        ORDER BY activity_date
+    """
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df
+
 def get_overview_data():
     conn = sqlite3.connect('fitfile_data.db')
     query = """
