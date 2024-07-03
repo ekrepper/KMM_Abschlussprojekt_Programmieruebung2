@@ -13,6 +13,7 @@ import datetime
 import sqlite3
 from sqlite3 import Error
 import time
+import random
 
 
 #from A_my_streamlit import read_data as rd
@@ -34,7 +35,7 @@ sys.path.insert(0, parentdir)
 
 # Eine Überschrift der ersten Ebene
 if option == "🏠Home":
-    st.title = "Home"
+    st.title = "🏠Home"
  
 
     # Set page configuration
@@ -118,7 +119,7 @@ if option == "🏠Home":
     # Adding a delay to simulate loading
         time.sleep(2)
     # Display the prompt after loading
-        st.write("Was sitzt du hier noch vorm Computer? Geh raus und beweg dich!")
+        st.write("Du hast geklickt, gewartet und... nichts ist passiert! Eine App allein wird keine Wunder vollbringen - für deine Fitness bist du selbst verantwortlich! Also geh raus und mach etwas daraus!")
 
     # Adding some more content
     st.markdown("""
@@ -136,6 +137,44 @@ if option == "🏠Home":
     ###### Füttere in der linken Seitenleiste der Trainingsübersicht deine Trainingsdaten und lasse dein inneres Viech wachsen!
     """)
 
+   
+    # Adding some fun motivational quotes
+    st.markdown("""
+    **Motivationszitate:**
+    - "Ein Löwe läuft nie einfach nur aus Spaß – er hat immer ein Ziel!" 🦁
+    - "Beweg dich wie ein Affe im Dschungel und spüre die Freiheit!" 🐒
+    - "Sei zäh wie ein Bär, stark wie ein Stier und schnell wie ein Gepard!" 🐻🐂🐆
+    """)
+
+    # Adding some fun facts
+    st.markdown("""
+    **Fun Facts:**
+    - Wusstest du, dass ein Kolibri bis zu 70 Mal pro Sekunde mit den Flügeln schlägt? 🐦
+    - Ein Gepard kann in nur 3 Sekunden von 0 auf 100 km/h beschleunigen! 🐆
+    - Kängurus können nicht rückwärts springen – aber das wirst du mit deinem Training auch nicht müssen! 🦘
+    """)
+
+    # Additional humorous encouragement with interaction
+    st.markdown("""
+    **Zusätzliche Motivation:**
+    - "Wenn du dich wie ein Faultier fühlst, erinnere dich daran: Selbst Faultiere erreichen ihr Ziel – langsam, aber sicher!" 🦥
+    - "Schwitze wie ein Schwein – aber nicht im Schlamm!" 🐷
+    - "Vergiss nicht: Ein gesundes Leben ist ein glückliches Leben – und du wirst zum Viech, das alles schafft!" 💪
+    """)
+
+    # Interactive funny phrases
+    phrases = [
+        "Wie ein Schwein im Trüffelrausch – finde dein inneres Trainingsziel und gib alles! 🐷",
+        "Ein Wildschwein rennt durch den Wald und lässt sich nicht aufhalten – so wirst auch du mit deinem Training unaufhaltsam! 🐗",
+        "Ein Schwein kann dich nicht inspirieren? Dann stell dir vor, wie schnell du bist, wenn du vor einem ausgewachsenen 200-Kilo-Schwein weglaufen willst!",
+        "Es ist Zeit, den inneren Schweinehund zu besiegen und sich wie ein echtes Wildschwein zu fühlen! 🐽",
+        "Vom Büroschwein zum Wildschwein: Diese App wird dich verwandeln!"
+    ]
+
+    # Randomly choose a phrase when clicking the button
+    if st.button('Motiviere mich noch mehr!'):
+        random_phrase = random.choice(phrases)
+        st.write(f"Motivation des Tages: {random_phrase}")
 
 elif option == "🏥Patientendatenbank":
 
@@ -205,16 +244,22 @@ elif option == "🏥Patientendatenbank":
 
             if ekg_data:
                 st.write(f"Durchschnittliche Herzfrequenz: {ekg_data.heartrate:.2f} bpm")
-                ekg_data.make_plot()
 
                 # Slider für Zeitbereich hinzufügen
-                max_duration = float(ekg_data.duration)
+                max_duration = float(ekg_data.df["Zeit in ms"].iloc[-1]) / 1000 # Maximaler Zeitpunkt in s
+                min_duration = float(ekg_data.df["Zeit in ms"].iloc[0]) / 1000 # Minimaler Zeitpunkt in s
+                #Zeitfenster für den Plot
+                window = st.select_slider(
+                    "Wählen Sie ein Zeitfenster (in Sekunden):",
+                    options=[10, 30, 60, 120, 300],
+                    value=30
+                )
                 start_time = st.slider(
                     "Wählen Sie den Startzeitpunkt für den Plot (in Sekunden):",
-                    0.0, max_duration - 30.0, 0.0, 0.1
+                    min_duration, max_duration - window, min_duration, 0.1 # Slider je nach Startzeitpunkt anwendbar
                 )
 
-                end_time = start_time + 30.0
+                end_time = start_time + window
                 st.write(f"Plot von {start_time:.1f} s bis {end_time:.1f} s")
                 ekg_data.make_plot(start_time, end_time)
 
