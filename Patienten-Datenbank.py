@@ -249,11 +249,9 @@ elif option == "🏥Patientendatenbank":
                 max_duration = float(ekg_data.df["Zeit in ms"].iloc[-1]) / 1000 # Maximaler Zeitpunkt in s
                 min_duration = float(ekg_data.df["Zeit in ms"].iloc[0]) / 1000 # Minimaler Zeitpunkt in s
                 #Zeitfenster für den Plot
-                window = st.select_slider(
-                    "Wählen Sie ein Zeitfenster (in Sekunden):",
-                    options=[10, 30, 60, 120, 300],
-                    value=30
-                )
+
+                window = st.number_input("Wählen Sie ein Zeitfenster (in Sekunden):", min_value=10, max_value=60, value=30, step=10)
+
                 start_time = st.slider(
                     "Wählen Sie den Startzeitpunkt für den Plot (in Sekunden):",
                     min_duration, max_duration - window, min_duration, 0.1 # Slider je nach Startzeitpunkt anwendbar
