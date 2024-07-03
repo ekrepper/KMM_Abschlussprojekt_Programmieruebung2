@@ -244,6 +244,7 @@ elif option == "🏥Patientendatenbank":
 
             if ekg_data:
                 st.write(f"Durchschnittliche Herzfrequenz: {ekg_data.heartrate:.2f} bpm")
+                st.write(f"Herzratenvariabilität: {ekg_data.hvr:.2f}")
 
                 # Slider für Zeitbereich hinzufügen
                 max_duration = float(ekg_data.df["Zeit in ms"].iloc[-1]) / 1000 # Maximaler Zeitpunkt in s
