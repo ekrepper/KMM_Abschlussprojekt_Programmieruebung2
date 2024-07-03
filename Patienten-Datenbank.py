@@ -386,10 +386,18 @@ elif option == "🏃Trainingsübersicht":
 
             # Startdatum für den Datepicker
             start_date = datetime.date(2024, 1, 1)
+            
+                # Abstand einfügen
+            st.sidebar.markdown("---")  # Fügt eine Trennlinie ein
 
-            # Datei-Upload
-            uploaded_files = st.file_uploader("Choose a .fit file", accept_multiple_files=True)
+            uploaded_files = st.sidebar.file_uploader("Upload .fit file", accept_multiple_files=True, key="file_uploader")
+            st.sidebar.caption("Choose a .fit file")
 
+    # Anzeige des letzten hochgeladenen FIT-Files
+            if uploaded_files:
+                last_uploaded_file = uploaded_files[-1]
+                st.sidebar.info(f"Last uploaded file: {last_uploaded_file.name}")
+            
             # SQLite-Datenbankverbindung
             conn = sqlite3.connect('fitfile_data.db')
             c = conn.cursor()
