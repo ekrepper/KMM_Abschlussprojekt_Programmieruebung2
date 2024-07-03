@@ -125,6 +125,36 @@ def delete_entry(activity_id):
     finally:
         conn.close()
 
+#User anlegen 
+
+def create_user():
+    conn = sqlite3.connect('fitfile_data.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS user (
+            id INTEGER PRIMARY KEY,
+            vorname TEXT,
+            nachname TEXT,
+            geburtsdatum DATE,
+            max_hr INTEGER
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def insert_user(vorname, nachname, geburtsdatum, max_hr):
+    conn = sqlite3.connect('fitfile_data.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO user (vorname, nachname, geburtsdatum, max_hr) VALUES (?, ?, ?, ?)", (vorname, nachname, geburtsdatum, max_hr))
+    conn.commit()
+    conn.close()
+
+def get_user():
+    conn = sqlite3.connect('fitfile_data.db')
+    df = pd.read_sql_query("SELECT * FROM user", conn)
+    conn.close()
+    return df
+
 
 #Bestleistungen
 
@@ -143,6 +173,7 @@ def create_database():
     conn.close()
 
 create_database()
+
 
 # Funktion zum Einfügen der Bestleistung in die Datenbank
 def insert_bestleistung(strecke, zeit, datum):
