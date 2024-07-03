@@ -393,26 +393,29 @@ elif option == "🏃Trainingsübersicht":
         
 
     # Anzeige des letzten hochgeladenen FIT-Files
-        if uploaded_files:
-            last_uploaded_file = uploaded_files[-1]
-            st.sidebar.info(f"Last uploaded file: {last_uploaded_file.name}")
-        
-        # SQLite-Datenbankverbindung
-        conn = sqlite3.connect('fitfile_data.db')
-        c = conn.cursor()
+            if uploaded_files:
+                last_uploaded_file = uploaded_files[-1]
+                st.sidebar.info(f"Last uploaded file: {last_uploaded_file.name}")
+            # SQLite-Datenbankverbindung
+            conn = sqlite3.connect('fitfile_data.db')
+            c = conn.cursor()
 
-        if uploaded_files:
-            tb.create_table()  # Tabelle erstellen, falls nicht vorhanden
-            for uploaded_file in uploaded_files:
-                fit_parser = ff.FitFile(uploaded_file)
-                insert_sql = fit_parser.get_insert_statement()
-                if insert_sql:
-                    try:
-                        c.execute(insert_sql)
-                        conn.commit()
-                        st.success(f"Daten aus {uploaded_file.name} erfolgreich in die Datenbank eingefügt.")
-                    except sqlite3.Error as e:
-                        st.error(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
+            if uploaded_files:
+                tb.create_table()  # Tabelle erstellen, falls nicht vorhanden
+                for uploaded_file in uploaded_files:
+                    if not uploaded_file.name.endswith('.fit'):
+                        st.error(f"Die Datei {uploaded_file.name} wird nicht unterstützt. Es werden nur .fit Dateien akzeptiert.")
+                        continue
+
+                    fit_parser = ff.FitFile(uploaded_file)
+                    insert_sql = fit_parser.get_insert_statement()
+                    if insert_sql:
+                        try:
+                            c.execute(insert_sql)
+                            conn.commit()
+                            st.success(f"Daten aus {uploaded_file.name} erfolgreich in die Datenbank eingefügt.")
+                        except sqlite3.Error as e:
+                            st.error(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
 
         st.sidebar.markdown("---")  # Fügt eine Trennlinie ein
 
