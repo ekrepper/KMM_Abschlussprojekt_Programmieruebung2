@@ -83,7 +83,7 @@ def get_summary_data(start_date, end_date):
     query = f"""
         SELECT 
             SUM(activity_total_distance) AS total_distance,
-            SUM(activity_duration) AS total_duration,
+            time(SUM(strftime('%s', activity_duration)), 'unixepoch') AS total_duration_formatted,
             AVG(activity_avg_pace) AS avg_pace,
             AVG(activity_avg_hr) AS avg_hr
         FROM 
