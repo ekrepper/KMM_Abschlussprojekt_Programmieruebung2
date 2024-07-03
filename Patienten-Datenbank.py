@@ -56,7 +56,7 @@ if option == "🏠Home":
         font-weight: bold;
         text-align: center;
         margin-top: 50px;
-        color: #4CAF50;
+        color: #878787;
         animation: fadeInDown 2s;
     }
 
