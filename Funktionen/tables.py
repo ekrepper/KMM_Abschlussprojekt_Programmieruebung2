@@ -39,7 +39,7 @@ def get_user():
     df = pd.read_sql_query("SELECT user_id, vorname || ' ' || nachname AS name FROM user", conn)
     conn.close()
     users = df.apply(lambda row: f"{row['user_id']} - {row['name']}", axis=1).tolist()
-    users.append("Neue*n Athlet*in anlegen")
+    users.append("Neue/n Athlet/in anlegen")
     return users
 
 #Trainingsdaten
@@ -63,18 +63,19 @@ def create_table():
     conn.commit()
     conn.close()
 
-def insert_data(uploaded_file, user_id=None):
+def insert_data(uploaded_file):
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
     fit_parser = ff.FitFile(uploaded_file)
-    
+
     for record in fit_parser.get_messages('record'):
         activity_date = record.get_value('timestamp')
         activity_duration = record.get_value('timer_time')
         activity_total_distance = record.get_value('distance')
         activity_avg_pace = record.get_value('enhanced_avg_speed')
         activity_avg_hr = record.get_value('avg_heart_rate')
-        user_id = st.session_state.user_id
+        
+        
         
         # Einfügeabfrage mit Überprüfung auf Duplikate
         insert_sql = """
@@ -83,7 +84,7 @@ def insert_data(uploaded_file, user_id=None):
             ) VALUES (?, ?, ?, ?, ?, ?, ?);
         """
         try:
-            c.execute(insert_sql, (activity_date, activity_date.isocalendar()[1], activity_duration, activity_total_distance, activity_avg_pace, activity_avg_hr, user_id))
+            c.execute(insert_sql, (activity_date, activity_date.isocalendar()[1], activity_duration, activity_total_distance, activity_avg_pace, activity_avg_hr, st.session_state.user_id))
         except sqlite3.Error as e:
             print(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
     

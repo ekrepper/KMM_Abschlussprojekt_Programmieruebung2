@@ -427,8 +427,8 @@ elif option == "🏃Trainingsübersicht":
                 st.session_state.user_id = None  
 
             #neuen Nutzer anlegen
-            st.sidebar.markdown("Wählen Sie Athelt*in aus oder fügen Sie eine:n Athlet*in hinzü:")
-            user = st.sidebar.selectbox("Athlet*in auswählen:", tb.get_user())
+            st.sidebar.markdown("Wählen Sie Athlet/in aus oder fügen Sie eine/n Athlet/in hinzu:")
+            user = st.sidebar.selectbox("Athlet/in auswählen:", tb.get_user())
 
             if user == "Neue*n Athlet*in anlegen": #or st.session_state.show_user_form
                 st.session_state.show_user_form = True
@@ -446,10 +446,7 @@ elif option == "🏃Trainingsübersicht":
         if 'show_user_form' not in st.session_state:
             st.session_state.show_user_form = False
 
-        # user_id vom ausgewählten user zum neuen Training hinzufügen
-        #selected_user = st.sidebar.selectbox("Athlet*in auswählen:", tb.get_user())
-        user_id = int(user.split(" - ")[0])  # Annahme: user_id ist eine Ganzzahl
-        tb.insert_data(uploaded_files, user_id)
+        
         
     
         tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
