@@ -6,8 +6,8 @@ import streamlit as st
 # Initialisierung des Session State
 if 'show_user_form' not in st.session_state:
     st.session_state.show_user_form = False
-if 'selected_user_id' not in st.session_state:
-    st.session_state.selected_user_id = None
+if 'user_id' not in st.session_state:
+    st.session_state.user_id = None
 
 #User anlegen 
 
@@ -63,7 +63,7 @@ def create_table():
     conn.commit()
     conn.close()
 
-def insert_data(uploaded_file):
+def insert_data(uploaded_file, user_id=None):
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
     fit_parser = ff.FitFile(uploaded_file)
@@ -74,7 +74,7 @@ def insert_data(uploaded_file):
         activity_total_distance = record.get_value('distance')
         activity_avg_pace = record.get_value('enhanced_avg_speed')
         activity_avg_hr = record.get_value('avg_heart_rate')
-        user_id = st.session_state.selected_user_id
+        user_id = st.session_state.user_id
         
         # Einfügeabfrage mit Überprüfung auf Duplikate
         insert_sql = """
