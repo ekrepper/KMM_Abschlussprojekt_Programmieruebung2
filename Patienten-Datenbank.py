@@ -421,26 +421,45 @@ elif option == "🏃Trainingsübersicht":
 
 
         if option == "Entwicklung Laufumfang":
-                            st.sidebar.markdown("Wählen Sie einen Nutzer aus oder legen Sie einen neuen Nutzer an:")
-                            user = st.sidebar.selectbox("Nutzer auswählen:", tb.get_user())
+
+            #neuen Nutzer anlegen
+            st.sidebar.markdown("Wählen Sie Athelt*in aus oder legen Sie eine:n Athlet*in an:")
+            user = st.sidebar.selectbox("Athlet*in auswählen:", tb.get_user())
+
+            if user == "Neue*n Athlet*in anlegen" or st.session_state.show_user_form:
+                st.session_state.show_user_form = True
+                user_vorname = st.sidebar.text_input("Vornamen eingeben:")
+                user_nachname = st.sidebar.text_input("Nachnamen eingeben:")
+                user_geburtsdatum = st.sidebar.date_input("Geburtsdatum eingeben:",value=datetime.date(2000, 1, 1), min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
+                user_id = user_geburtsdatum.strftime('%Y%m%d')
+                user_max_hr = st.sidebar.number_input("Maximale Herzfrequenz eingeben:", min_value=1, max_value=300, value=220)
+                if st.sidebar.button("Speichern"):
+                    tb.insert_user(user_id, user_vorname, user_nachname, user_geburtsdatum, user_max_hr)
+                    st.sidebar.success(f"Athlet:in {user_vorname} {user_nachname} erfolgreich angelegt.")
+                    st.session_state.show_user_form = False
+
+            
 
 
         if 'show_user_form' not in st.session_state:
-            st.session_state.show_user_form = False  
+            st.session_state.show_user_form = False
+        if 'selected_user_id' not in st.session_state:
+            st.session_state.selected_user_id = None  
 
         #neuen Nutzer anlegen
-        if st.sidebar.button("Neuen Nutzer anlegen") or st.session_state.show_user_form:
+        if user == "Neuen Nutzer anlegen" or st.session_state.show_user_form:
             st.session_state.show_user_form = True
             user_vorname = st.sidebar.text_input("Vornamen eingeben:")
             user_nachname = st.sidebar.text_input("Nachnamen eingeben:")
-            user_geburtsdatum = st.sidebar.date_input("Geburtsdatum eingeben:")
+            user_geburtsdatum = st.sidebar.date_input("Geburtsdatum eingeben:",value=datetime.date(2000, 1, 1), min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
+            user_id = user_geburtsdatum.strftime('%Y%m%d')
             user_max_hr = st.sidebar.number_input("Maximale Herzfrequenz eingeben:", min_value=1, max_value=300, value=220)
             if st.sidebar.button("Speichern"):
-                tb.insert_user(user_vorname, user_nachname, user_geburtsdatum, user_max_hr)
+                tb.insert_user(user_id, user_vorname, user_nachname, user_geburtsdatum, user_max_hr)
                 st.sidebar.success(f"Nutzer {user_vorname} {user_nachname} erfolgreich angelegt.")
                 st.session_state.show_user_form = False
-
-
+        
+       
         tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
 
         # Eindeutige Einschränkung hinzufügen
@@ -512,9 +531,6 @@ elif option == "🏃Trainingsübersicht":
             go.Bar(name='total_distance', x=df_trainings_week['activity_date'], y=df_trainings_week['total_distance'], text=df_trainings_week['total_distance'], textposition='auto')
         ])
         fig2.update_layout(barmode='group', xaxis_tickangle=-45, title="Laufumfang pro Tag in der ausgewählten Kalenderwoche")
-        
-        #einfärben der Balken aufgrund der Zeit in den Herzfrequenz-Zonen
-    
     
         tab1.plotly_chart(fig2)
         
@@ -552,4 +568,4 @@ elif option == "🏃Trainingsübersicht":
             else:
                 st.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
         except Exception as e:
-            tab2.write(f"Fehler - bitte gültigen Zeitraum auswählen! Fehler: {str(e)}")
+            tab2.write(f"Fehler - bitte gültigen Zeitraum auswählen! Verursachende Fehlermeldung: {e}")

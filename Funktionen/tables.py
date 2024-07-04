@@ -1,11 +1,53 @@
 import sqlite3
 import fitparse as ff  # oder der passende Fitfile Parser
 import pandas as pd
+import streamlit as st
+
+# Initialisierung des Session State
+if 'show_user_form' not in st.session_state:
+    st.session_state.show_user_form = False
+if 'selected_user_id' not in st.session_state:
+    st.session_state.selected_user_id = None
+
+#User anlegen 
+
+def create_user():
+    conn = sqlite3.connect('fitfile_data.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS user (
+            id INTEGER PRIMARY KEY,
+            vorname TEXT,
+            nachname TEXT,
+            geburtsdatum DATE,
+            max_hr INTEGER
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def insert_user(user_id, vorname, nachname, geburtsdatum, max_hr):
+    user_id = geburtsdatum.strftime('%Y%m%d')
+    conn = sqlite3.connect('fitfile_data.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO user (user_id, vorname, nachname, geburtsdatum, max_hr) VALUES (?, ?, ?, ?, ?)", (user_id, vorname, nachname, geburtsdatum, max_hr))
+    conn.commit()
+    conn.close()
+
+def get_user():
+    conn = sqlite3.connect('fitfile_data.db')
+    df = pd.read_sql_query("SELECT user_id, vorname || ' ' || nachname AS name FROM user", conn)
+    conn.close()
+    users = df.apply(lambda row: f"{row['user_id']} - {row['name']}", axis=1).tolist()
+    users.append("Neue*n Athlet*in anlegen")
+    return users
+
+#Trainingsdaten
 
 def create_table():
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
-    create_table_sql = """
+    c.execute('''
         CREATE TABLE IF NOT EXISTS trainings (
             activity_id INTEGER PRIMARY KEY AUTOINCREMENT,
             activity_date DATE,
@@ -13,10 +55,11 @@ def create_table():
             activity_duration TIME,
             activity_total_distance FLOAT,
             activity_avg_pace TIME,
-            activity_avg_hr INTEGER
-        );
-    """
-    c.execute(create_table_sql)
+            activity_avg_hr INTEGER,
+            user_id TEXT,
+            FOREIGN KEY (user_id) REFERENCES user(user_id)
+        )
+    ''')
     conn.commit()
     conn.close()
 
@@ -31,15 +74,16 @@ def insert_data(uploaded_file):
         activity_total_distance = record.get_value('distance')
         activity_avg_pace = record.get_value('enhanced_avg_speed')
         activity_avg_hr = record.get_value('avg_heart_rate')
+        user_id = st.session_state.selected_user_id
         
         # Einfügeabfrage mit Überprüfung auf Duplikate
         insert_sql = """
             INSERT OR IGNORE INTO trainings (
-                activity_date, activity_kw, activity_duration, activity_total_distance, activity_avg_pace, activity_avg_hr
-            ) VALUES (?, ?, ?, ?, ?, ?);
+                activity_date, activity_kw, activity_duration, activity_total_distance, activity_avg_pace, activity_avg_hr, user_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?);
         """
         try:
-            c.execute(insert_sql, (activity_date, activity_date.isocalendar()[1], activity_duration, activity_total_distance, activity_avg_pace, activity_avg_hr))
+            c.execute(insert_sql, (activity_date, activity_date.isocalendar()[1], activity_duration, activity_total_distance, activity_avg_pace, activity_avg_hr, user_id))
         except sqlite3.Error as e:
             print(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
     
@@ -125,35 +169,6 @@ def delete_entry(activity_id):
     finally:
         conn.close()
 
-#User anlegen 
-
-def create_user():
-    conn = sqlite3.connect('fitfile_data.db')
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS user (
-            id INTEGER PRIMARY KEY,
-            vorname TEXT,
-            nachname TEXT,
-            geburtsdatum DATE,
-            max_hr INTEGER
-        )
-    ''')
-    conn.commit()
-    conn.close()
-
-def insert_user(vorname, nachname, geburtsdatum, max_hr):
-    conn = sqlite3.connect('fitfile_data.db')
-    c = conn.cursor()
-    c.execute("INSERT INTO user (vorname, nachname, geburtsdatum, max_hr) VALUES (?, ?, ?, ?)", (vorname, nachname, geburtsdatum, max_hr))
-    conn.commit()
-    conn.close()
-
-def get_user():
-    conn = sqlite3.connect('fitfile_data.db')
-    df = pd.read_sql_query("SELECT * FROM user", conn)
-    conn.close()
-    return df
 
 
 #Bestleistungen
