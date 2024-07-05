@@ -4,7 +4,7 @@ import datetime as datetime
 import streamlit as st
 
 class FitFile:
-    def __init__(self, fit_file):
+    def __init__(self, fit_file, user_id=None):
         self.fit_file = fit_file
         self.dateref = datetime.datetime(1970, 1, 1)
         self.heartrate = np.array([])
@@ -15,6 +15,7 @@ class FitFile:
         self.total_distance = None
         self.total_timer_time = None
         self.timestamp = None
+        self.user_id = user_id
         self.load_fit_file()
 
     def load_fit_file(self):
@@ -96,20 +97,22 @@ class FitFile:
             return None
         
         insert_sql = f"""
-            INSERT INTO trainings (
+            INSERT INTO 'trainings' (
                 activity_date,
                 activity_kw,
                 activity_duration,
                 activity_total_distance,
                 activity_avg_pace,
-                activity_avg_hr
+                activity_avg_hr,
+                user_id
             ) VALUES (
                 '{self.get_date()}',
                 {self.get_calendar_week()},
                 '{self.get_total_time()}',
                 {self.get_total_distance()},
                 '{self.get_avg_pace()}',
-                {self.get_avg_hr()}
+                {self.get_avg_hr()},
+                {self.user_id}
             );
         """
         return insert_sql
