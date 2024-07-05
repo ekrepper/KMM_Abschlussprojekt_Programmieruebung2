@@ -142,49 +142,49 @@ if option == "🏠Home":
         st.write("Du hast geklickt, gewartet und... nichts ist passiert! Eine App allein wird keine Wunder vollbringen - für deine Fitness bist du selbst verantwortlich! Also geh raus und mach etwas daraus!")
 
 # Adding some more content
-st.markdown("""
-### Willkommen zur Fitness-Tracking-App
+    st.markdown("""
+    ### Willkommen zur Fitness-Tracking-App
 
-#### Funktionen:
+    #### Funktionen:
 
-- **Patientendatenbank**
-  - Verwalte Patientendaten sicher und effizient.
+    - **Patientendatenbank**
+      - Verwalte Patientendaten sicher und effizient.
 
-- **Trainingsübersicht**
-  - **Laufumfang:** Verfolge die Entwicklung deines Laufumfangs über die Zeit.
+    - **Trainingsübersicht**
+      - **Laufumfang:** Verfolge die Entwicklung deines Laufumfangs über die Zeit.
 
-- **Datei-Upload**
-  - Lade deine `.fit`-Dateien hoch.
-  - Nur `.fit`-Dateien werden unterstützt. Andere Formate sind nicht zulässig.
+    - **Datei-Upload**
+      - Lade deine `.fit`-Dateien hoch.
+      - Nur `.fit`-Dateien werden unterstützt. Andere Formate sind nicht zulässig.
 
-- **Datenbank**
-  - Deine Trainingsdaten werden in einer SQLite-Datenbank gespeichert und verarbeitet.
+    - **Datenbank**
+      - Deine Trainingsdaten werden in einer SQLite-Datenbank gespeichert und verarbeitet.
 
-- **Visualisierung und Analyse**
-  - **Diagramme:** Sieh deine Trainingsfortschritte in übersichtlichen Diagrammen.
-  - **Datenansicht:** Greife auf detaillierte Informationen zu deinen Trainingseinheiten zu.
+    - **Visualisierung und Analyse**
+      - **Diagramme:** Sieh deine Trainingsfortschritte in übersichtlichen Diagrammen.
+      - **Datenansicht:** Greife auf detaillierte Informationen zu deinen Trainingseinheiten zu.
 
-#### Nutzung:
+    #### Nutzung:
 
-1. **Datei hochladen:** Nutze den Datei-Upload-Bereich, um deine `.fit`-Dateien hochzuladen.
-2. **Übersicht prüfen:** Überprüfe deine Trainingsdaten.
-3. **Analyse ansehen:** Sieh dir die Diagramme und Datenansichten an, um deine Fortschritte zu verfolgen.
+    1. **Datei hochladen:** Nutze den Datei-Upload-Bereich, um deine `.fit`-Dateien hochzuladen.
+    2. **Übersicht prüfen:** Überprüfe deine Trainingsdaten.
+    3. **Analyse ansehen:** Sieh dir die Diagramme und Datenansichten an, um deine Fortschritte zu verfolgen.
 
-Starte jetzt und lade deine Trainingsdaten hoch, um deine Fitnessreise zu verfolgen und zu optimieren!
-""")
+    Starte jetzt und lade deine Trainingsdaten hoch, um deine Fitnessreise zu verfolgen und zu optimieren!
+    """)
 # Interactive motivational phrases
-phrases = [
-    "Glaube an dich selbst und all das, was du bist. Wisse, dass in dir etwas ist, das größer ist als jedes Hindernis.",
-    "Erfolg ist die Summe kleiner Anstrengungen, die Tag für Tag wiederholt werden.",
-    "Die einzige Grenze für unsere Verwirklichung von morgen wird unsere Zweifel von heute sein.",
-    "Gib niemals auf, denn der Anfang ist immer der schwerste. Halte durch, die besten Dinge kommen, wenn du es am wenigsten erwartest.",
-    "Dein Potenzial ist unendlich. Mach jeden Tag einen Schritt vorwärts und du wirst erstaunt sein, wie weit du kommen kannst."
-]
+    phrases = [
+        "Glaube an dich selbst und all das, was du bist. Wisse, dass in dir etwas ist, das größer ist als jedes Hindernis.",
+        "Erfolg ist die Summe kleiner Anstrengungen, die Tag für Tag wiederholt werden.",
+        "Die einzige Grenze für unsere Verwirklichung von morgen wird unsere Zweifel von heute sein.",
+        "Gib niemals auf, denn der Anfang ist immer der schwerste. Halte durch, die besten Dinge kommen, wenn du es am wenigsten erwartest.",
+        "Dein Potenzial ist unendlich. Mach jeden Tag einen Schritt vorwärts und du wirst erstaunt sein, wie weit du kommen kannst."
+    ]
 
 # Randomly choose a phrase when clicking the button
-if st.button('Motiviere mich!'):
-    random_phrase = random.choice(phrases)
-    st.write(f"Motivation des Tages: {random_phrase}")
+    if st.button('Motiviere mich!'):
+        random_phrase = random.choice(phrases)
+        st.write(f"Motivation des Tages: {random_phrase}")
 
 elif option == "🏥Patientendatenbank":
 
