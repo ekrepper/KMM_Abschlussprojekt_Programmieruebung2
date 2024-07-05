@@ -142,12 +142,14 @@ class FitFile:
             return None
         
         insert_sql = f"""
-            INSERT INTO trainings (
+            INSERT INTO 'trainings' (
                 activity_date,
                 activity_kw,
                 activity_duration,
                 activity_total_distance,
                 activity_avg_pace,
+                activity_avg_hr,
+                user_id
                 activity_avg_hr,
                 user_id
             ) VALUES (

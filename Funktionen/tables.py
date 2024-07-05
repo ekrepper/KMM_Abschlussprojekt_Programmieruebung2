@@ -42,6 +42,15 @@ def get_user():
     users.append("Neue/n Athlet/in anlegen")
     return users
 
+def get_active_user_id():
+    conn = sqlite3.connect('fitfile_data.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT active_User FROM active_User LIMIT 1")  # Annahme: es gibt immer nur einen aktiven Benutzer
+    active_user_id = cursor.fetchone()
+    conn.close()
+    return active_user_id[0] if active_user_id else None
+
+
 #Trainingsdaten
 
 def create_table():
@@ -63,7 +72,7 @@ def create_table():
     conn.commit()
     conn.close()
 
-def insert_data(uploaded_file):
+def insert_data(uploaded_file, user_id):
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
     fit_parser = ff.FitFile(uploaded_file)
@@ -75,8 +84,6 @@ def insert_data(uploaded_file):
         activity_avg_pace = record.get_value('enhanced_avg_speed')
         activity_avg_hr = record.get_value('avg_heart_rate')
         
-        
-        
         # Einfügeabfrage mit Überprüfung auf Duplikate
         insert_sql = """
             INSERT OR IGNORE INTO trainings (
@@ -84,7 +91,7 @@ def insert_data(uploaded_file):
             ) VALUES (?, ?, ?, ?, ?, ?, ?);
         """
         try:
-            c.execute(insert_sql, (activity_date, activity_date.isocalendar()[1], activity_duration, activity_total_distance, activity_avg_pace, activity_avg_hr, st.session_state.user_id))
+            c.execute(insert_sql, (activity_date, activity_date.isocalendar()[1], activity_duration, activity_total_distance, activity_avg_pace, activity_avg_hr, user_id))
         except sqlite3.Error as e:
             print(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
     
@@ -93,14 +100,17 @@ def insert_data(uploaded_file):
 
 def get_training_data():
     conn = sqlite3.connect('fitfile_data.db')
-    query = """
+    user_id = get_active_user_id()
+    # st.text(user_id)
+    query = f"""
         SELECT activity_kw, activity_date, SUM(activity_total_distance) AS total_distance
-        FROM trainings
+        FROM trainings WHERE user_id = '{user_id}'
         GROUP BY activity_kw, activity_date
         ORDER BY activity_date
     """
     df = pd.read_sql_query(query, conn)
     conn.close()
+    # st.text(df)
     return df
 
 def get_training_data_by_week(week):
