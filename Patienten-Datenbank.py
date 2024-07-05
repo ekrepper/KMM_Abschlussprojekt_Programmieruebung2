@@ -399,6 +399,8 @@ elif option == "🏃Trainingsübersicht":
             # Abstand einfügen
         st.sidebar.markdown("---")  # Fügt eine Trennlinie ein
 
+        user_id = tb.get_active_user_id()
+    
         uploaded_files = st.sidebar.file_uploader("Upload .fit file", accept_multiple_files=True, key="file_uploader")
         
 
@@ -417,7 +419,7 @@ elif option == "🏃Trainingsübersicht":
                     st.error(f"Die Datei {uploaded_file.name} wird nicht unterstützt. Es werden nur .fit Dateien akzeptiert.")
                     continue
 
-                fit_parser = ff.FitFile(uploaded_file)
+                fit_parser = ff.FitFile(uploaded_file, user_id)
                 insert_sql = fit_parser.get_insert_statement()
                 if insert_sql:
                     try:
@@ -426,31 +428,47 @@ elif option == "🏃Trainingsübersicht":
                         st.success(f"Daten aus {uploaded_file.name} erfolgreich in die Datenbank eingefügt.")
                     except sqlite3.Error as e:
                         st.error(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
-
+        
+    
         st.sidebar.markdown("---")  # Fügt eine Trennlinie ein
 
 
         if option == "Entwicklung Laufumfang":
-                            st.sidebar.markdown("Wählen Sie einen Nutzer aus oder legen Sie einen neuen Nutzer an:")
-                            user = st.sidebar.selectbox("Nutzer auswählen:", tb.get_user())
 
+            #neuen Nutzer anlegen
+            st.sidebar.markdown("Wählen Sie Athelt*in aus oder legen Sie eine:n Athlet*in an:")
+            user = st.sidebar.selectbox("Athlet*in auswählen:", tb.get_user())
 
-        if 'show_user_form' not in st.session_state:
-            st.session_state.show_user_form = False  
-
-        #neuen Nutzer anlegen
-        if st.sidebar.button("Neuen Nutzer anlegen") or st.session_state.show_user_form:
+        if user == "Neue/n Athlet/in anlegen": #or st.session_state.show_user_form:
             st.session_state.show_user_form = True
             user_vorname = st.sidebar.text_input("Vornamen eingeben:")
             user_nachname = st.sidebar.text_input("Nachnamen eingeben:")
-            user_geburtsdatum = st.sidebar.date_input("Geburtsdatum eingeben:")
+            user_geburtsdatum = st.sidebar.date_input("Geburtsdatum eingeben:",value=datetime.date(2000, 1, 1), min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
+            user_id = user_geburtsdatum.strftime('%Y%m%d')
             user_max_hr = st.sidebar.number_input("Maximale Herzfrequenz eingeben:", min_value=1, max_value=300, value=220)
             if st.sidebar.button("Speichern"):
-                tb.insert_user(user_vorname, user_nachname, user_geburtsdatum, user_max_hr)
-                st.sidebar.success(f"Nutzer {user_vorname} {user_nachname} erfolgreich angelegt.")
+                tb.insert_user(user_id, user_vorname, user_nachname, user_geburtsdatum, user_max_hr)
+                st.sidebar.success(f"Athlet:in {user_vorname} {user_nachname} erfolgreich angelegt.")
                 st.session_state.show_user_form = False
+        else:
+            # row['user_id']} - {row['name']}", axis=1).tolist()
+            user_id = user.split(" - ")[0]
+            # conn = sqlite3.connect('fitfile_data.db')
+            # c = conn.cursor()
+            # c.execute("INSERT INTO user (user_id, vorname, nachname, geburtsdatum, max_hr) VALUES (?, ?, ?, ?, ?)", (user_id, vorname, nachname, geburtsdatum, max_hr))
+            # conn.commit()
+            # conn.close()
+            conn = sqlite3.connect('fitfile_data.db')
+            c = conn.cursor()
+            c.execute("UPDATE 'active_User' SET active_User = ?", (user_id,))
+            conn.commit()
 
+        if 'show_user_form' not in st.session_state:
+            st.session_state.show_user_form = False
+        if 'user_id' not in st.session_state:
+                st.session_state.user_id = None 
 
+    
         tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
 
         # Eindeutige Einschränkung hinzufügen
@@ -464,102 +482,102 @@ elif option == "🏃Trainingsübersicht":
         # Daten aus der Datenbank abrufen und nach Kalenderwoche aggregieren
         df = tb.get_training_data()
 
-        # Konvertiere activity_date-Spalte zu datetime
-        df['activity_date'] = pd.to_datetime(df['activity_date']).dt.date
+        if df.size != 0:
+            # Konvertiere activity_date-Spalte zu datetime
+            df['activity_date'] = pd.to_datetime(df['activity_date']).dt.date
 
-        # Aggregation der Daten nach Kalenderwoche
-        df['activity_kw'] = pd.to_datetime(df['activity_date']).dt.isocalendar().week
-        weekly_data = df.groupby('activity_kw')['total_distance'].sum().reset_index()
+            # Aggregation der Daten nach Kalenderwoche
+            df['activity_kw'] = pd.to_datetime(df['activity_date']).dt.isocalendar().week
+            weekly_data = df.groupby('activity_kw')['total_distance'].sum().reset_index()
 
-        # Berechnung der prozentualen Veränderung zwischen den Kalenderwochen
-        weekly_data["Veränderung (%)"] = weekly_data["total_distance"].pct_change() * 100
-        weekly_data["Veränderung (%)"] = weekly_data["Veränderung (%)"].fillna(0)  # Ersetze NaN mit 0 für den ersten Wert
+            # Berechnung der prozentualen Veränderung zwischen den Kalenderwochen
+            weekly_data["Veränderung (%)"] = weekly_data["total_distance"].pct_change() * 100
+            weekly_data["Veränderung (%)"] = weekly_data["Veränderung (%)"].fillna(0)  # Ersetze NaN mit 0 für den ersten Wert
 
-        # Lineare Regression für die Trendlinie
-        X = np.arange(len(weekly_data)).reshape(-1, 1)  # Kalenderwochen als Feature
-        y = weekly_data["total_distance"].values  # Laufumfänge als Zielwert
-        model = LinearRegression().fit(X, y)
-        trend = model.predict(X)
+            # Lineare Regression für die Trendlinie
+            X = np.arange(len(weekly_data)).reshape(-1, 1)  # Kalenderwochen als Feature
+            y = weekly_data["total_distance"].values  # Laufumfänge als Zielwert
+            model = LinearRegression().fit(X, y)
+            trend = model.predict(X)
 
-        # Darstellung des Diagramms im Tab "Chart"
-        tab1.subheader("Entwicklung Laufumfang")
-        try:
-            fig = go.Figure()
-        except:
-            st.write(f"Noch keine Tabelle vorhanden.")
+            # Darstellung des Diagramms im Tab "Chart"
+            tab1.subheader("Entwicklung Laufumfang")
+            try:
+                fig = go.Figure()
+            except:
+                st.write(f"Noch keine Tabelle vorhanden.")
 
-        # Balkendiagramm
-        fig.add_trace(go.Bar(
-            x=weekly_data["activity_kw"],
-            y=weekly_data["total_distance"],
-            text=weekly_data["Veränderung (%)"].apply(lambda x: f'{x:.2f}%'),
-            textposition='auto',
-            name="Laufumfang"
-        ))
+            # Balkendiagramm
+            fig.add_trace(go.Bar(
+                x=weekly_data["activity_kw"],
+                y=weekly_data["total_distance"],
+                text=weekly_data["Veränderung (%)"].apply(lambda x: f'{x:.2f}%'),
+                textposition='auto',
+                name="Laufumfang"
+            ))
 
-        # Trendlinie
-        fig.add_trace(go.Scatter(
-            x=weekly_data["activity_kw"],
-            y=trend,
-            mode='lines',
-            name='Trendlinie',
-            line=dict(color='firebrick', width=2)
-        ))
+            # Trendlinie
+            fig.add_trace(go.Scatter(
+                x=weekly_data["activity_kw"],
+                y=trend,
+                mode='lines',
+                name='Trendlinie',
+                line=dict(color='firebrick', width=2)
+            ))
 
-        fig.update_layout(
-            title="Entwicklung des Laufumfangs mit prozentualer Veränderung",
-            xaxis_title="Kalenderwoche",
-            yaxis_title="Laufumfang (km)",
-            template="plotly_white"
-        )
+            fig.update_layout(
+                title="Entwicklung des Laufumfangs mit prozentualer Veränderung",
+                xaxis_title="Kalenderwoche",
+                yaxis_title="Laufumfang (km)",
+                template="plotly_white"
+            )
 
-        tab1.plotly_chart(fig)
+            tab1.plotly_chart(fig)
 
-        df_trainings_week = tb.get_training_data_by_week(tab1.number_input("Kalenderwoche eingeben:", min_value=1, max_value=53, value=1))
+            df_trainings_week = tb.get_training_data_by_week(tab1.number_input("Kalenderwoche eingeben:", min_value=1, max_value=53, value=1))
 
-        #Säulendiagramm der trainings in der ausgewählten Woche
-        fig2 = go.Figure(data=[
-            go.Bar(name='total_distance', x=df_trainings_week['activity_date'], y=df_trainings_week['total_distance'], text=df_trainings_week['total_distance'], textposition='auto')
-        ])
-        fig2.update_layout(barmode='group', xaxis_tickangle=-45, title="Laufumfang pro Tag in der ausgewählten Kalenderwoche")
+            #Säulendiagramm der trainings in der ausgewählten Woche
+            fig2 = go.Figure(data=[
+                go.Bar(name='total_distance', x=df_trainings_week['activity_date'], y=df_trainings_week['total_distance'], text=df_trainings_week['total_distance'], textposition='auto')
+            ])
+            fig2.update_layout(barmode='group', xaxis_tickangle=-45, title="Laufumfang pro Tag in der ausgewählten Kalenderwoche")
         
-        #einfärben der Balken aufgrund der Zeit in den Herzfrequenz-Zonen
-    
-    
-        tab1.plotly_chart(fig2)
-        
+            tab1.plotly_chart(fig2)
+            
 
-        # Datepicker zur Auswahl eines Datums im angegebenen Zeitraum
-        selected_date = tab2.date_input(
-            "Wähle ein Datum aus:",
-            (start_date, today),  # Standardmäßig von 1. Januar 2024 bis heute
-            start_date,  # Standardwert ist der 1. Januar 2024
-            today,  # Enddatum ist das heutige Datum
-            format="DD.MM.YYYY"  # Format des Datumsinputs
-        )
+            # Datepicker zur Auswahl eines Datums im angegebenen Zeitraum
+            selected_date = tab2.date_input(
+                "Wähle ein Datum aus:",
+                (start_date, today),  # Standardmäßig von 1. Januar 2024 bis heute
+                start_date,  # Standardwert ist der 1. Januar 2024
+                today,  # Enddatum ist das heutige Datum
+                format="DD.MM.YYYY"  # Format des Datumsinputs
+            )
 
-        # Anzeigen der Daten
-        df_overview = tb.get_overview_data()
-        
-        try:
-            if isinstance(selected_date, tuple):
-                start_date = selected_date[0]  # Umwandlung in datetime.date
-                end_date = selected_date[1]  # Umwandlung in datetime.date
+            # Anzeigen der Daten
+            df_overview = tb.get_overview_data()
+            
+            try:
+                if isinstance(selected_date, tuple):
+                    start_date = selected_date[0]  # Umwandlung in datetime.date
+                    end_date = selected_date[1]  # Umwandlung in datetime.date
 
-                # Sicherstellen, dass activity_date im datetime.date-Format ist
-                df_overview['activity_date'] = pd.to_datetime(df_overview['activity_date']).dt.date
-                
-                # Filtern der Datenframes nach dem ausgewählten Datumbereich
-                df_selected = df_overview[(df_overview['activity_date'] >= start_date) & 
-                                        (df_overview['activity_date'] <= end_date)]
+                    # Sicherstellen, dass activity_date im datetime.date-Format ist
+                    df_overview['activity_date'] = pd.to_datetime(df_overview['activity_date']).dt.date
+                    
+                    # Filtern der Datenframes nach dem ausgewählten Datumbereich
+                    df_selected = df_overview[(df_overview['activity_date'] >= start_date) & 
+                                            (df_overview['activity_date'] <= end_date)]
 
-                summary_data = tb.get_summary_data(start_date, end_date)
+                    summary_data = tb.get_summary_data(start_date, end_date)
 
-                tab2.write(df_selected)
-                tab2.write(summary_data)
+                    tab2.write(df_selected)
+                    tab2.write(summary_data)
 
-                
-            else:
-                st.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
-        except Exception as e:
-            tab2.write(f"Fehler - bitte gültigen Zeitraum auswählen! Fehler: {str(e)}")
+                    
+                else:
+                    st.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
+            except Exception as e:
+                tab2.write(f"Fehler - bitte gültigen Zeitraum auswählen! Verursachende Fehlermeldung: {e}")
+        else:
+            st.write("Noch keine Daten vorhanden.")
