@@ -97,11 +97,31 @@ if option == "🏠Home":
     """, unsafe_allow_html=True)
 
     # Header
-    st.markdown('<div class="header animate__animated animate__fadeInDown">Welcome to VIECHCOACH</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subheader animate__animated animate__fadeInUp">Wir machen ein wahres VIECH aus Dir!</div>', unsafe_allow_html=True)
+    st.markdown('<div class="header animate__animated animate__fadeInDown">Welcome to HEALTHCOACH</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subheader animate__animated animate__fadeInUp">Wir machen eine wahre Sportskanone aus Dir!</div>', unsafe_allow_html=True)
 
-    image = Image.open("data/screenshots/logosw.jpg")
-    st.image(image, caption="Die 3 Creators (Lisi, Markus, Anna)")
+# Bild laden
+    image = Image.open("data/screenshots/HEALTHCOACH.png")
+
+# HTML für zentrierte Anzeige
+    st.markdown(
+        f"""
+        <style>
+        .centered {{
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+# Bild in der Mitte anzeigen
+    st.image(image, caption="", use_column_width=True)
+
+# oder alternativ mit HTML, um das Bild zu zentrieren:
+    st.markdown(f'<div style="text-align:center"><img src="data:image/png;base64,{image}" alt="HEALTHCOACH Logo" class="centered"></div>', unsafe_allow_html=True)
 
     # Animated button
     #st.markdown('<button class="bounce-button">Get Started</button>', unsafe_allow_html=True)
@@ -121,60 +141,50 @@ if option == "🏠Home":
     # Display the prompt after loading
         st.write("Du hast geklickt, gewartet und... nichts ist passiert! Eine App allein wird keine Wunder vollbringen - für deine Fitness bist du selbst verantwortlich! Also geh raus und mach etwas daraus!")
 
-    # Adding some more content
-    st.markdown("""
-    ### Unser Ziel:
-    - **Dein Herz so stark zu machen, wie das eines Blauwals!** 
-    - **Deine Ausdauer so auf Vordermann zu bringen, wie die eines Dromedars!**
-    - **Dich schnell zu machen, wie ein Gepard!**
-    - **Sodass du ein Allesfresser werden kannst, wie ein Wildschwein!**
-    """)
-    
-    #st.logo('HEALTHCOACH.png')
+# Adding some more content
+st.markdown("""
+### Willkommen zur Fitness-Tracking-App
 
-    st.markdown("""
-    #### Mit dieser App wirst auch du zum Viech! 
-    ###### Füttere in der linken Seitenleiste der Trainingsübersicht deine Trainingsdaten und lasse dein inneres Viech wachsen!
-    """)
+#### Funktionen:
 
-   
-    # Adding some fun motivational quotes
-    st.markdown("""
-    **Motivationszitate:**
-    - "Ein Löwe läuft nie einfach nur aus Spaß – er hat immer ein Ziel!" 🦁
-    - "Beweg dich wie ein Affe im Dschungel und spüre die Freiheit!" 🐒
-    - "Sei zäh wie ein Bär, stark wie ein Stier und schnell wie ein Gepard!" 🐻🐂🐆
-    """)
+- **Patientendatenbank**
+  - Verwalte Patientendaten sicher und effizient.
 
-    # Adding some fun facts
-    st.markdown("""
-    **Fun Facts:**
-    - Wusstest du, dass ein Kolibri bis zu 70 Mal pro Sekunde mit den Flügeln schlägt? 🐦
-    - Ein Gepard kann in nur 3 Sekunden von 0 auf 100 km/h beschleunigen! 🐆
-    - Kängurus können nicht rückwärts springen – aber das wirst du mit deinem Training auch nicht müssen! 🦘
-    """)
+- **Trainingsübersicht**
+  - **Laufumfang:** Verfolge die Entwicklung deines Laufumfangs über die Zeit.
 
-    # Additional humorous encouragement with interaction
-    st.markdown("""
-    **Zusätzliche Motivation:**
-    - "Wenn du dich wie ein Faultier fühlst, erinnere dich daran: Selbst Faultiere erreichen ihr Ziel – langsam, aber sicher!" 🦥
-    - "Schwitze wie ein Schwein – aber nicht im Schlamm!" 🐷
-    - "Vergiss nicht: Ein gesundes Leben ist ein glückliches Leben – und du wirst zum Viech, das alles schafft!" 💪
-    """)
+- **Datei-Upload**
+  - Lade deine `.fit`-Dateien hoch.
+  - Nur `.fit`-Dateien werden unterstützt. Andere Formate sind nicht zulässig.
 
-    # Interactive funny phrases
-    phrases = [
-        "Wie ein Schwein im Trüffelrausch – finde dein inneres Trainingsziel und gib alles! 🐷",
-        "Ein Wildschwein rennt durch den Wald und lässt sich nicht aufhalten – so wirst auch du mit deinem Training unaufhaltsam! 🐗",
-        "Ein Schwein kann dich nicht inspirieren? Dann stell dir vor, wie schnell du bist, wenn du vor einem ausgewachsenen 200-Kilo-Schwein weglaufen willst!",
-        "Es ist Zeit, den inneren Schweinehund zu besiegen und sich wie ein echtes Wildschwein zu fühlen! 🐽",
-        "Vom Büroschwein zum Wildschwein: Diese App wird dich verwandeln!"
-    ]
+- **Datenbank**
+  - Deine Trainingsdaten werden in einer SQLite-Datenbank gespeichert und verarbeitet.
 
-    # Randomly choose a phrase when clicking the button
-    if st.button('Motiviere mich noch mehr!'):
-        random_phrase = random.choice(phrases)
-        st.write(f"Motivation des Tages: {random_phrase}")
+- **Visualisierung und Analyse**
+  - **Diagramme:** Sieh deine Trainingsfortschritte in übersichtlichen Diagrammen.
+  - **Datenansicht:** Greife auf detaillierte Informationen zu deinen Trainingseinheiten zu.
+
+#### Nutzung:
+
+1. **Datei hochladen:** Nutze den Datei-Upload-Bereich, um deine `.fit`-Dateien hochzuladen.
+2. **Übersicht prüfen:** Überprüfe deine Trainingsdaten.
+3. **Analyse ansehen:** Sieh dir die Diagramme und Datenansichten an, um deine Fortschritte zu verfolgen.
+
+Starte jetzt und lade deine Trainingsdaten hoch, um deine Fitnessreise zu verfolgen und zu optimieren!
+""")
+# Interactive motivational phrases
+phrases = [
+    "Glaube an dich selbst und all das, was du bist. Wisse, dass in dir etwas ist, das größer ist als jedes Hindernis.",
+    "Erfolg ist die Summe kleiner Anstrengungen, die Tag für Tag wiederholt werden.",
+    "Die einzige Grenze für unsere Verwirklichung von morgen wird unsere Zweifel von heute sein.",
+    "Gib niemals auf, denn der Anfang ist immer der schwerste. Halte durch, die besten Dinge kommen, wenn du es am wenigsten erwartest.",
+    "Dein Potenzial ist unendlich. Mach jeden Tag einen Schritt vorwärts und du wirst erstaunt sein, wie weit du kommen kannst."
+]
+
+# Randomly choose a phrase when clicking the button
+if st.button('Motiviere mich!'):
+    random_phrase = random.choice(phrases)
+    st.write(f"Motivation des Tages: {random_phrase}")
 
 elif option == "🏥Patientendatenbank":
 
