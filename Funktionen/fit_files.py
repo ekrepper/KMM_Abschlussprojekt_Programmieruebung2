@@ -150,8 +150,6 @@ class FitFile:
                 activity_avg_pace,
                 activity_avg_hr,
                 user_id
-                activity_avg_hr,
-                user_id
             ) VALUES (
                 '{self.date}',
                 {self.calendar_week},
