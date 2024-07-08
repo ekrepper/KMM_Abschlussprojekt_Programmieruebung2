@@ -76,14 +76,7 @@ def insert_data(uploaded_file, user_id):
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
     fit_parser = ff.FitFile(uploaded_file)
-    """
-    for record in fit_parser.get_messages('record'):
-        activity_date = record.get_value('timestamp')
-        activity_duration = record.get_value('timer_time')
-        activity_total_distance = record.get_value('distance')
-        activity_avg_pace = record.get_value('enhanced_avg_speed')
-        activity_avg_hr = record.get_value('avg_heart_rate')
-    """
+
     activity_date = fit_parser.date
     activity_duration = fit_parser.total_timer_time
     activity_total_distance = fit_parser.total_distance
