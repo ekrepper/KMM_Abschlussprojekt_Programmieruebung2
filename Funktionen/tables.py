@@ -65,6 +65,11 @@ def create_table():
             activity_total_distance FLOAT,
             activity_avg_pace TIME,
             activity_avg_hr INTEGER,
+            time_zone_1 TIME,
+            time_zone_2 TIME,
+            time_zone_3 TIME,
+            time_zone_4 TIME,
+            time_zone_5 TIME,
             user_id TEXT,
             FOREIGN KEY (user_id) REFERENCES user(user_id)
         )
@@ -72,30 +77,6 @@ def create_table():
     conn.commit()
     conn.close()
 
-def insert_data(uploaded_file, user_id):
-    conn = sqlite3.connect('fitfile_data.db')
-    c = conn.cursor()
-    fit_parser = ff.FitFile(uploaded_file)
-
-    activity_date = fit_parser.date
-    activity_duration = fit_parser.total_timer_time
-    activity_total_distance = fit_parser.total_distance
-    activity_avg_pace = fit_parser.avg_speed
-    activity_avg_hr = fit_parser.avg_heart_rate
-    
-    # Einfügeabfrage mit Überprüfung auf Duplikate
-    insert_sql = """
-        INSERT OR IGNORE INTO trainings (
-            activity_date, activity_kw, activity_duration, activity_total_distance, activity_avg_pace, activity_avg_hr, user_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?);
-    """
-    try:
-        c.execute(insert_sql, (activity_date, activity_date.isocalendar()[1], activity_duration, activity_total_distance, activity_avg_pace, activity_avg_hr, user_id))
-    except sqlite3.Error as e:
-        print(f"Fehler beim Einfügen der Daten in die Datenbank: {e}")
-    
-    conn.commit()
-    conn.close()
 
 def get_training_data():
     conn = sqlite3.connect('fitfile_data.db')
@@ -126,15 +107,21 @@ def get_training_data_by_week(week):
 
 def get_overview_data():
     conn = sqlite3.connect('fitfile_data.db')
-    query = """
+    user_id = get_active_user_id()
+    query = f"""
         SELECT 
             activity_date, 
             activity_total_distance AS total_distance, 
             activity_duration AS total_duration, 
             activity_avg_hr AS avg_hr, 
-            activity_avg_pace AS avg_pace
+            activity_avg_pace AS avg_pace,
+            time_zone_1,
+            time_zone_2,
+            time_zone_3,
+            time_zone_4,
+            time_zone_5
         FROM 
-            trainings
+            trainings WHERE user_id = '{user_id}'
         GROUP BY 
             activity_date, activity_duration
         ORDER BY 
@@ -146,6 +133,7 @@ def get_overview_data():
 
 def get_summary_data(start_date, end_date):
     conn = sqlite3.connect('fitfile_data.db')
+    user_id = get_active_user_id()
     query = f"""
         SELECT 
             SUM(activity_total_distance) AS total_distance,
@@ -155,23 +143,22 @@ def get_summary_data(start_date, end_date):
         FROM 
             trainings
         WHERE 
-            activity_date BETWEEN '{start_date}' AND '{end_date}'
+            activity_date BETWEEN '{start_date}' AND '{end_date}' AND user_id = '{user_id}'
     """
     df = pd.read_sql_query(query, conn)
     conn.close()
     return df
 
 
-def delete_entry(activity_id):
+def delete_entry(delete_id):
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
-    
-    delete_sql = """
-        DELETE FROM trainings
-        WHERE activity_id = ?
+    user_id = get_active_user_id()
+    delete_sql = f"""
+        DELETE FROM trainings WHERE activity_id = '{delete_id} AND user_id = '{user_id}'
     """
     try:
-        c.execute(delete_sql, (activity_id,))
+        c.execute(delete_sql)
         conn.commit()
         print("Eintrag erfolgreich gelöscht.")
     except sqlite3.Error as e:
@@ -214,3 +201,19 @@ def get_bestleistungen():
     df = pd.read_sql_query("SELECT * FROM bestleistungen", conn)
     conn.close()
     return df
+
+if __name__ == "__main__":
+    conn = sqlite3.connect('fitfile_data.db')
+    c = conn.cursor()
+    
+    delete_sql = """
+       Drop table trainings
+    """
+    try:
+        c.execute(delete_sql)
+        conn.commit()
+        print("Eintrag erfolgreich gelöscht.")
+    except sqlite3.Error as e:
+        print(f"Fehler beim Löschen des Eintrags: {e}")
+    finally:
+        conn.close()

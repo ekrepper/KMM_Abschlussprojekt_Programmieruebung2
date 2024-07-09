@@ -574,6 +574,11 @@ elif option == "🏃Trainingsübersicht":
                     tab2.write(df_selected)
                     tab2.write(summary_data)
 
+                    #Löschen von Einträgen aus der Datenbank mit der activity_id
+                    delete_id = tab2.number_input("Activity-ID zum Löschen auswählen:", min_value=0, max_value=53, value=1)
+                    if tab2.button("Löschen"):
+                        tb.delete_entry(delete_id)
+
                     
                 else:
                     st.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
