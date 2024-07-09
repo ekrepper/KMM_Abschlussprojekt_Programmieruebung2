@@ -114,10 +114,10 @@ def get_training_data():
 
 def get_training_data_by_week(week):
     conn = sqlite3.connect('fitfile_data.db')
+    user_id = get_active_user_id()
     query = f"""
         SELECT activity_date, activity_total_distance AS total_distance
-        FROM trainings
-        WHERE activity_kw = {week}
+        FROM trainings WHERE user_id = '{user_id}' AND activity_kw = {week}
         ORDER BY activity_date
     """
     df = pd.read_sql_query(query, conn)
