@@ -170,6 +170,7 @@ if option == "🏠Home":
     1. **Datei hochladen:** Nutze den Datei-Upload-Bereich, um deine `.fit`-Dateien hochzuladen.
     2. **Übersicht prüfen:** Überprüfe deine Trainingsdaten.
     3. **Analyse ansehen:** Sieh dir die Diagramme und Datenansichten an, um deine Fortschritte zu verfolgen.
+    4. **Export der Daten:** Exportiere deine Daten als CSV oder PDF.
 
     Starte jetzt und lade deine Trainingsdaten hoch, um deine Fitnessreise zu verfolgen und zu optimieren!
                 
