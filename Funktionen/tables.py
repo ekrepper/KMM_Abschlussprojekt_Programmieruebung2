@@ -60,6 +60,24 @@ def get_user():
         st.sidebar.write("Keine Benutzer/innen vorhanden - legen Sie Athlet/innen an.")
     return users
 
+def get_max_hr():
+    """
+    Retrieves the maximum heartrate from the 'active_User' table.
+    
+    Returns:
+        int: The maximum heartrate of the current user.
+    """
+    user_id = get_active_user_id()
+    conn = sqlite3.connect('fitfile_data.db')
+    c = conn.cursor()
+    get_max_hr = f"""
+        SELECT max_hr FROM user WHERE user_id = '{user_id}'
+    """
+    df = pd.read_sql_query(get_max_hr, conn)
+    conn.close()
+    return df["max_hr"][0]
+
+
 def get_active_user_id():
     """
     Retrieves the active user ID from the 'active_User' table.
@@ -319,3 +337,4 @@ if __name__ == "__main__":
         print(f"Fehler beim Löschen des Eintrags: {e}")
     finally:
         conn.close()
+    
