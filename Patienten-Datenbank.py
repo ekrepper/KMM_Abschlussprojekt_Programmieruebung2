@@ -14,6 +14,11 @@ import sqlite3
 from sqlite3 import Error
 import time
 import random
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+import logging
 
 
 #from A_my_streamlit import read_data as rd
@@ -435,40 +440,58 @@ elif option == "🏃Trainingsübersicht":
 
         if option == "Entwicklung Laufumfang":
 
-            #neuen Nutzer anlegen
-            st.sidebar.markdown("Wählen Sie Athelt*in aus oder legen Sie eine:n Athlet*in an:")
-            user = st.sidebar.selectbox("Athlet*in auswählen:", tb.get_user())
-
-        if user == "Neue/n Athlet/in anlegen": #or st.session_state.show_user_form:
-            st.session_state.show_user_form = True
-            user_vorname = st.sidebar.text_input("Vornamen eingeben:")
-            user_nachname = st.sidebar.text_input("Nachnamen eingeben:")
-            user_geburtsdatum = st.sidebar.date_input("Geburtsdatum eingeben:",value=datetime.date(2000, 1, 1), min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
-            user_id = user_geburtsdatum.strftime('%Y%m%d')
-            user_max_hr = st.sidebar.number_input("Maximale Herzfrequenz eingeben:", min_value=1, max_value=300, value=220)
-            if st.sidebar.button("Speichern"):
-                tb.insert_user(user_id, user_vorname, user_nachname, user_geburtsdatum, user_max_hr)
-                st.sidebar.success(f"Athlet:in {user_vorname} {user_nachname} erfolgreich angelegt.")
+            if 'show_user_form' not in st.session_state:
                 st.session_state.show_user_form = False
-        else:
-            # row['user_id']} - {row['name']}", axis=1).tolist()
-            user_id = user.split(" - ")[0]
-            # conn = sqlite3.connect('fitfile_data.db')
-            # c = conn.cursor()
-            # c.execute("INSERT INTO user (user_id, vorname, nachname, geburtsdatum, max_hr) VALUES (?, ?, ?, ?, ?)", (user_id, vorname, nachname, geburtsdatum, max_hr))
-            # conn.commit()
-            # conn.close()
-            conn = sqlite3.connect('fitfile_data.db')
-            c = conn.cursor()
-            c.execute("UPDATE 'active_User' SET active_User = ?", (user_id,))
-            conn.commit()
 
-        if 'show_user_form' not in st.session_state:
-            st.session_state.show_user_form = False
-        if 'user_id' not in st.session_state:
+            if 'user_id' not in st.session_state:
                 st.session_state.user_id = None 
 
-    
+            if 'show_delete_form' not in st.session_state:
+                st.session_state.show_delete_form = False
+
+
+            #neuen Nutzer anlegen
+            st.sidebar.markdown("Wählen Sie Athlet*in aus:")
+            user = st.sidebar.selectbox("Athlet*in auswählen:", tb.get_user())
+
+            new_user_button = st.sidebar.button("Neue/n Athlet/in anlegen")
+            if new_user_button:
+                st.session_state.show_user_form = True
+
+            if st.session_state.show_user_form:
+                st.session_state.show_user_form = True
+                user_vorname = st.sidebar.text_input("Vornamen eingeben:")
+                user_nachname = st.sidebar.text_input("Nachnamen eingeben:")
+                user_geburtsdatum = st.sidebar.date_input("Geburtsdatum eingeben:",value=datetime.date(2000, 1, 1), min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
+                user_id = user_geburtsdatum.strftime('%Y%m%d')
+                user_max_hr = st.sidebar.number_input("Maximale Herzfrequenz eingeben:", min_value=1, max_value=300, value=220, step=1)
+                st.sidebar.markdown("Wenn die maximale HF nicht bekannt ist, kann die maximale HF als 220 - Lebensalter geschätzt werden.")
+                if st.sidebar.button("Speichern"):
+                    tb.insert_user(user_id, user_vorname, user_nachname, user_geburtsdatum, user_max_hr)
+                    st.sidebar.success(f"Athlet/in {user_vorname} {user_nachname} erfolgreich angelegt.")
+                    st.session_state.show_user_form = False
+            else:
+                if user:
+                    user_id = user.split(" - ")[0]
+                    conn = sqlite3.connect('fitfile_data.db')
+                    c = conn.cursor()
+                    c.execute("UPDATE 'active_User' SET active_User = ?", (user_id,))
+                    conn.commit()
+
+           
+            delete_user_button = st.sidebar.button("Athlet/in löschen")
+            if delete_user_button:
+                st.session_state.show_delete_form = True
+
+            if st.session_state.show_delete_form:     
+                del_user = st.sidebar.selectbox("Athlet*in auswählen:", tb.get_user(), key = "del_user")
+                user_id = user.split(" - ")[0]
+                if st.sidebar.button("Löschen"):
+                    tb.delete_user(user_id)
+                    st.sidebar.success(f"Athlet:in {user} erfolgreich gelöscht.")
+
+
+        
         tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
 
         # Eindeutige Einschränkung hinzufügen
@@ -553,36 +576,99 @@ elif option == "🏃Trainingsübersicht":
                 today,  # Enddatum ist das heutige Datum
                 format="DD.MM.YYYY"  # Format des Datumsinputs
             )
+        else:
+            st. write ("Wählen Sie einen gültigen Zeitraum aus.")
 
             # Anzeigen der Daten
             df_overview = tb.get_overview_data()
             
-            try:
-                if isinstance(selected_date, tuple):
-                    start_date = selected_date[0]  # Umwandlung in datetime.date
-                    end_date = selected_date[1]  # Umwandlung in datetime.date
+            
+            if isinstance(selected_date, tuple):
+                start_date = selected_date[0]  # Umwandlung in datetime.date
+                end_date = selected_date[1]  # Umwandlung in datetime.date
 
-                    # Sicherstellen, dass activity_date im datetime.date-Format ist
-                    df_overview['activity_date'] = pd.to_datetime(df_overview['activity_date']).dt.date
-                    
-                    # Filtern der Datenframes nach dem ausgewählten Datumbereich
-                    df_selected = df_overview[(df_overview['activity_date'] >= start_date) & 
-                                            (df_overview['activity_date'] <= end_date)]
+                # Sicherstellen, dass activity_date im datetime.date-Format ist
+                df_overview['activity_date'] = pd.to_datetime(df_overview['activity_date']).dt.date
+                
+                # Filtern der Datenframes nach dem ausgewählten Datumbereich
+                df_selected = df_overview[(df_overview['activity_date'] >= start_date) & 
+                                        (df_overview['activity_date'] <= end_date)]
 
-                    summary_data = tb.get_summary_data(start_date, end_date)
+                summary_data = tb.get_summary_data(start_date, end_date)
 
-                    tab2.write(df_selected)
-                    tab2.write(summary_data)
+                tab2.write(df_selected)
+                tab2.write(summary_data)
 
-                    #Löschen von Einträgen aus der Datenbank mit der activity_id
-                    delete_id = tab2.number_input("Activity-ID zum Löschen auswählen:", min_value=0, max_value=53, value=1)
-                    if tab2.button("Löschen"):
-                        tb.delete_entry(delete_id)
+                # Löschen von Einträgen aus der Datenbank mit der activity_id
+        delete_id = tab2.number_input("Activity-ID zum Löschen auswählen:", min_value=0, max_value=53, value=1)
+        if tab2.button("Löschen"):
+            tb.delete_entry(delete_id)
 
-                    
-                else:
-                    st.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
-            except Exception as e:
-                tab2.write(f"Fehler - bitte gültigen Zeitraum auswählen! Verursachende Fehlermeldung: {e}")
-        else:
-            st.write("Noch keine Daten vorhanden.")
+# else:
+#     st.write("Noch keine Daten vorhanden.")
+
+# Stellen Sie sicher, dass die Verzeichnisse existieren oder erstellen Sie sie
+csv_dir = 'KMM_Abschlussprojekt_Programmieruebung2/CSV'
+pdf_dir = 'KMM_Abschlussprojekt_Programmieruebung2/PDF'
+os.makedirs(csv_dir, exist_ok=True)
+os.makedirs(pdf_dir, exist_ok=True)
+
+
+try:
+    if isinstance(selected_date, tuple):
+        start_date = selected_date[0]  # Umwandlung in datetime.date
+        end_date = selected_date[1]  # Umwandlung in datetime.date
+
+        # Sicherstellen, dass activity_date im datetime.date-Format ist
+        df_overview['activity_date'] = pd.to_datetime(df_overview['activity_date']).dt.date
+        
+        # Filtern der Datenframes nach dem ausgewählten Datumbereich
+        df_selected = df_overview[(df_overview['activity_date'] >= start_date) & 
+                                (df_overview['activity_date'] <= end_date)]
+
+
+        # Export-Buttons und Logik
+        try:
+            if st.button("Export all to CSV", help="Klicken Sie hier um die Daten als CSV zu exportieren!"):
+                time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                csv_path = os.path.join(csv_dir, f"{time}_overview_data.csv")
+                df_selected.to_csv(csv_path, index=False)
+                st.success(f"Data successfully exported to {csv_path}")
+
+                # Seite neu laden
+                st.experimental_rerun()
+        except Exception as e:
+            logging.exception('Fehler beim Exportieren als CSV!')
+            st.write(f"Fehler beim Exportieren als CSV! {e}")
+
+        try:
+            if st.button("Export all to PDF", help="Klicken Sie hier um die Daten als PDF zu exportieren!"):
+                time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                output_pdf_path = os.path.join(pdf_dir, f"{time}_overview_data.pdf")
+                pdf = SimpleDocTemplate(output_pdf_path, pagesize=letter)
+
+                # Convert the DataFrame to a list of lists for the Table
+                data = [df_selected.columns.tolist()] + df_selected.values.tolist()
+                table = Table(data)
+
+                # Define the style of the table
+                table_style = TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ])
+
+                table.setStyle(table_style)
+
+                # Include the table in the PDF
+                elements = [table]
+
+                pdf.build(elements)
+                st.success(f"Data successfully exported to {output_pdf_path}")
+        except Exception as e:
+            logging.exception('Fehler beim Exportieren als PDF!')
+            st.write(f"Fehler beim Exportieren als PDF! {e}")
+
+    else:
+        st.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
+except Exception as e:
+    st.write(f"Fehler: Es wurden keine Daten gefunden. {e}")

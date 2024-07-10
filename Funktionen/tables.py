@@ -39,7 +39,8 @@ def get_user():
     df = pd.read_sql_query("SELECT user_id, vorname || ' ' || nachname AS name FROM user", conn)
     conn.close()
     users = df.apply(lambda row: f"{row['user_id']} - {row['name']}", axis=1).tolist()
-    users.append("Neue/n Athlet/in anlegen")
+    if df.empty:
+        st.sidebar.write("Keine Benutzer/innen vorhanden - legen Sie Athlet/innen an.")
     return users
 
 def get_active_user_id():
@@ -49,6 +50,21 @@ def get_active_user_id():
     active_user_id = cursor.fetchone()
     conn.close()
     return active_user_id[0] if active_user_id else None
+
+def delete_user(user_id):
+    conn = sqlite3.connect('fitfile_data.db')
+    c = conn.cursor()
+    delete_sql = f"""
+        DELETE FROM user WHERE user_id = '{user_id}'
+    """
+    try:
+        c.execute(delete_sql)
+        conn.commit()
+        st.write("Benutzer erfolgreich gelöscht.")
+    except sqlite3.Error as e:
+        st.write(f"Fehler beim Löschen des Benutzers: {e}")
+    finally:
+        conn.close()
 
 
 #Trainingsdaten
@@ -109,7 +125,8 @@ def get_overview_data():
     conn = sqlite3.connect('fitfile_data.db')
     user_id = get_active_user_id()
     query = f"""
-        SELECT 
+        SELECT
+            activity_id, 
             activity_date, 
             activity_total_distance AS total_distance, 
             activity_duration AS total_duration, 
@@ -155,14 +172,14 @@ def delete_entry(delete_id):
     c = conn.cursor()
     user_id = get_active_user_id()
     delete_sql = f"""
-        DELETE FROM trainings WHERE activity_id = '{delete_id} AND user_id = '{user_id}'
+        DELETE FROM trainings WHERE activity_id = '{delete_id}'
     """
     try:
         c.execute(delete_sql)
         conn.commit()
-        print("Eintrag erfolgreich gelöscht.")
+        st.write("Eintrag erfolgreich gelöscht - Seite neu laden, dann wird Eintrag aus der Übersicht entfernt.")
     except sqlite3.Error as e:
-        print(f"Fehler beim Löschen des Eintrags: {e}")
+        st.write(f"Fehler beim Löschen des Eintrags: {e}")
     finally:
         conn.close()
 

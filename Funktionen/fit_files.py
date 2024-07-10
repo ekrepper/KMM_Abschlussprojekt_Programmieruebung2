@@ -151,12 +151,19 @@ class FitFile:
                 "Zone 5" : zone_5[0]}
         return data
     
-    def get_time_in_zones(self, data):
-        # Calculate the time spent in a heart rate zone
-        time_zone = np.size(data)
-        minutes = int((time_zone % 3600) // 60)
-        seconds = int(time_zone % 60)
-        return f"{minutes:02}:{seconds:02}"
+    def get_time_in_zones(self, zone_indices):
+        if len(zone_indices) == 0:
+            return "00:00:00"
+        
+        # Die Anzahl der Indizes entspricht der Zeit in Sekunden
+        total_time_in_seconds = len(zone_indices)
+        
+        # Konvertierung der Gesamtzeit in Stunden, Minuten und Sekunden
+        hours = int(total_time_in_seconds // 3600)
+        minutes = int((total_time_in_seconds % 3600) // 60)
+        seconds = int(total_time_in_seconds % 60)
+        
+        return f"{hours:02}:{minutes:02}:{seconds:02}"
 
     def get_insert_statement(self):
         """Erstellt eine SQL-Insert-Anweisung für die trainings-Tabelle basierend auf den gesammelten Daten"""
@@ -196,9 +203,3 @@ class FitFile:
         return insert_sql
 
 
-if __name__ == "__main__":
-    # Create an instance of the FitFile class and print some calculated values
-    fit = FitFile("data/Fit_files/Running_2024-06-04T13_16_40-1.fit")
-    print(fit.avg_hr)
-    print(fit.avg_speed)   
-    print(fit.total_distance)
