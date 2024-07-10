@@ -2,7 +2,6 @@ import fitparse
 import numpy as np
 import datetime as datetime
 import streamlit as st
-import pandas as pd
 
 # Import necessary libraries
 
@@ -300,6 +299,4 @@ if __name__ == "__main__":
     print(data.time_zone_3)
     print(data.time_zone_4)
     print(data.time_zone_5)
-    print(np.min(data.heartrate))
-
 
