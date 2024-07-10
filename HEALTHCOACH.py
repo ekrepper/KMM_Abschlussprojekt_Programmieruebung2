@@ -14,7 +14,7 @@ import sqlite3
 from sqlite3 import Error
 import time
 import random
-import imgkit
+
 
 #from A_my_streamlit import read_data as rd
 from Funktionen import performance_hr_analysis as pha 
