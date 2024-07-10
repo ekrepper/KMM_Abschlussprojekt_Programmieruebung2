@@ -14,12 +14,6 @@ import sqlite3
 from sqlite3 import Error
 import time
 import random
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-import logging
-
 
 #from A_my_streamlit import read_data as rd
 from Funktionen import performance_hr_analysis as pha 
@@ -102,8 +96,8 @@ if option == "🏠Home":
     """, unsafe_allow_html=True)
 
     # Header
-    st.markdown('<div class="header animate__animated animate__fadeInDown">Welcome to HEALTHCOACH</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subheader animate__animated animate__fadeInUp">Wir machen eine wahre Sportskanone aus Dir!</div>', unsafe_allow_html=True)
+    st.markdown('<div class="header animate__animated animate__fadeInDown">HEALTHCOACH</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subheader animate__animated animate__fadeInUp">Patienten- und Trainingsdaten im Überblick</div>', unsafe_allow_html=True)
 
 # Bild laden
     image = Image.open("data/screenshots/HEALTHCOACH.png")
@@ -132,28 +126,27 @@ if option == "🏠Home":
     #st.markdown('<button class="bounce-button">Get Started</button>', unsafe_allow_html=True)
 
     # Adding some interactivity
-    if st.button('Get Started'):
-        # Add a progress bar
-        st.write("Your progress is our progress")
-        progress_bar = st.progress(0)
+    # if st.button('Get Started'):
+    #     # Add a progress bar
+    #     st.write("Your progress is our progress")
+    #     progress_bar = st.progress(0)
 
-        for percent_complete in range(100):
-            time.sleep(0.1)  # Simulate a long computation
-            progress_bar.progress(percent_complete + 1)
+    #     for percent_complete in range(100):
+    #         time.sleep(0.1)  # Simulate a long computation
+    #         progress_bar.progress(percent_complete + 1)
         
     # Adding a delay to simulate loading
-        time.sleep(2)
+       #time.sleep(2)
     # Display the prompt after loading
-        st.write("Du hast geklickt, gewartet und... nichts ist passiert! Eine App allein wird keine Wunder vollbringen - für deine Fitness bist du selbst verantwortlich! Also geh raus und mach etwas daraus!")
+        #st.write("Du hast geklickt, gewartet und... nichts ist passiert! Eine App allein wird keine Wunder vollbringen - für deine Fitness bist du selbst verantwortlich! Also geh raus und mach etwas daraus!")
 
 # Adding some more content
     st.markdown("""
-    ### Willkommen zur Fitness-Tracking-App
-
+    ### Willkommen bei HEALTHCOACH!
     #### Funktionen:
 
     - **Patientendatenbank**
-      - Verwalte Patientendaten sicher und effizient.
+      - Verwalte Patientendaten: EKGs und Leistungsanalysen
 
     - **Trainingsübersicht**
       - **Laufumfang:** Verfolge die Entwicklung deines Laufumfangs über die Zeit.
@@ -163,10 +156,10 @@ if option == "🏠Home":
       - Nur `.fit`-Dateien werden unterstützt. Andere Formate sind nicht zulässig.
 
     - **Datenbank**
-      - Deine Trainingsdaten werden in einer SQLite-Datenbank gespeichert und verarbeitet.
+      - Die Trainingsdaten werden in einer SQLite-Datenbank gespeichert und verarbeitet.
 
     - **Visualisierung und Analyse**
-      - **Diagramme:** Sieh deine Trainingsfortschritte in übersichtlichen Diagrammen.
+      - **Diagramme:** Trainingsfortschritte  werden in übersichtlichen Diagrammen dargestellt.
       - **Datenansicht:** Greife auf detaillierte Informationen zu deinen Trainingseinheiten zu.
 
     #### Nutzung:
@@ -176,6 +169,16 @@ if option == "🏠Home":
     3. **Analyse ansehen:** Sieh dir die Diagramme und Datenansichten an, um deine Fortschritte zu verfolgen.
 
     Starte jetzt und lade deine Trainingsdaten hoch, um deine Fitnessreise zu verfolgen und zu optimieren!
+                
+    ### Mögliche Erweiterungen:
+    1. Trainingsplanungs-Feature hinzufügen
+    2. Login, Unterteilung der User in Trainer/in und Athlet/in; Trainer/in kann die Daten der Athlet/innen einsehen und Trainingsplanung vornehmen
+    3. Athlet/in kann die eigenen Daten und Trainingsplan erstellt von Trainer/in einsehen
+    4. Eingabe ermöglichen für Ruhe-HRV-Messungen (vorgenommen z.B. mit App Kubios HRV), und daraus Erholungsstatus ableiten
+    5. Gewicht-Eingabe um auf grobe Schwankungen reagieren zu können
+    6. Kommentarfeld bei Trainingseinheiten und Trainingsnutzen (aerob, anaerob, VO2max, Wettkampf...)
+    7. Bisherige Bestleistungen (PBs) im Überblick darstellen
+
     """)
 # Interactive motivational phrases
     phrases = [
@@ -451,8 +454,12 @@ elif option == "🏃Trainingsübersicht":
 
 
             #neuen Nutzer anlegen
-            st.sidebar.markdown("Wählen Sie Athlet*in aus:")
+            st.sidebar.markdown("Trainingsübersicht: Wählen Sie eine*n Athlet*in aus:")
             user = st.sidebar.selectbox("Athlet*in auswählen:", tb.get_user())
+
+            #Trennlinie
+            st.sidebar.markdown("---")
+            st.sidebar.write("Athleteten und Athletinnen verwalten:")
 
             new_user_button = st.sidebar.button("Neue/n Athlet/in anlegen")
             if new_user_button:
@@ -570,105 +577,48 @@ elif option == "🏃Trainingsübersicht":
 
             # Datepicker zur Auswahl eines Datums im angegebenen Zeitraum
             selected_date = tab2.date_input(
-                "Wähle ein Datum aus:",
-                (start_date, today),  # Standardmäßig von 1. Januar 2024 bis heute
-                start_date,  # Standardwert ist der 1. Januar 2024
-                today,  # Enddatum ist das heutige Datum
-                format="DD.MM.YYYY"  # Format des Datumsinputs
-            )
-        else:
-            st. write ("Wählen Sie einen gültigen Zeitraum aus.")
-
+                    "Wähle ein Datum aus:",
+                    (start_date, today),  # Standardmäßig von 1. Januar 2024 bis heute
+                    start_date,  # Standardwert ist der 1. Januar 2024
+                    today,  # Enddatum ist das heutige Datum
+                    format="DD.MM.YYYY"  # Format des Datumsinputs
+                )
             # Anzeigen der Daten
             df_overview = tb.get_overview_data()
-            
-            
-            if isinstance(selected_date, tuple):
-                start_date = selected_date[0]  # Umwandlung in datetime.date
-                end_date = selected_date[1]  # Umwandlung in datetime.date
 
-                # Sicherstellen, dass activity_date im datetime.date-Format ist
-                df_overview['activity_date'] = pd.to_datetime(df_overview['activity_date']).dt.date
-                
-                # Filtern der Datenframes nach dem ausgewählten Datumbereich
-                df_selected = df_overview[(df_overview['activity_date'] >= start_date) & 
-                                        (df_overview['activity_date'] <= end_date)]
+            try:
+                if isinstance(selected_date, tuple):
+                    start_date = selected_date[0]  # Umwandlung in datetime.date
+                    end_date = selected_date[1]  # Umwandlung in datetime.date
 
-                summary_data = tb.get_summary_data(start_date, end_date)
+                    # Sicherstellen, dass activity_date im datetime.date-Format ist
+                    df_overview['activity_date'] = pd.to_datetime(df_overview['activity_date']).dt.date
+                    
+                    # Filtern der Datenframes nach dem ausgewählten Datumbereich
+                    df_selected = df_overview[(df_overview['activity_date'] >= start_date) & 
+                                            (df_overview['activity_date'] <= end_date)]
 
-                tab2.write(df_selected)
-                tab2.write(summary_data)
+                    summary_data = tb.get_summary_data(start_date, end_date)
 
-                # Löschen von Einträgen aus der Datenbank mit der activity_id
-        delete_id = tab2.number_input("Activity-ID zum Löschen auswählen:", min_value=0, max_value=53, value=1)
-        if tab2.button("Löschen"):
-            tb.delete_entry(delete_id)
+                    tab2.write(df_selected)
+                    tab2.write(summary_data)
 
-# else:
-#     st.write("Noch keine Daten vorhanden.")
+                    # Löschen von Einträgen aus der Datenbank mit der activity_id
+                    delete_id = tab2.number_input("Activity-ID des Trainings, das sie löschen wollen, auswählen:", min_value=0, max_value=53, value=1, key="delete_id")
+                    if tab2.button("Löschen"):
+                        tb.delete_entry(delete_id)
 
-# Stellen Sie sicher, dass die Verzeichnisse existieren oder erstellen Sie sie
-csv_dir = 'KMM_Abschlussprojekt_Programmieruebung2/CSV'
-pdf_dir = 'KMM_Abschlussprojekt_Programmieruebung2/PDF'
-os.makedirs(csv_dir, exist_ok=True)
-os.makedirs(pdf_dir, exist_ok=True)
-
-
-try:
-    if isinstance(selected_date, tuple):
-        start_date = selected_date[0]  # Umwandlung in datetime.date
-        end_date = selected_date[1]  # Umwandlung in datetime.date
-
-        # Sicherstellen, dass activity_date im datetime.date-Format ist
-        df_overview['activity_date'] = pd.to_datetime(df_overview['activity_date']).dt.date
+                    
+                else:
+                    st.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
+            except Exception as e:
+                tab2.write(f"Fehler - bitte gültigen Zeitraum auswählen! Verursachende Fehlermeldung: {e}")
         
-        # Filtern der Datenframes nach dem ausgewählten Datumbereich
-        df_selected = df_overview[(df_overview['activity_date'] >= start_date) & 
-                                (df_overview['activity_date'] <= end_date)]
+        else:
+            st.write("Noch keine Daten vorhanden.")
+            tab2.write("Noch keine Daten vorhanden.")
 
+           
 
-        # Export-Buttons und Logik
-        try:
-            if st.button("Export all to CSV", help="Klicken Sie hier um die Daten als CSV zu exportieren!"):
-                time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-                csv_path = os.path.join(csv_dir, f"{time}_overview_data.csv")
-                df_selected.to_csv(csv_path, index=False)
-                st.success(f"Data successfully exported to {csv_path}")
+           
 
-                # Seite neu laden
-                st.experimental_rerun()
-        except Exception as e:
-            logging.exception('Fehler beim Exportieren als CSV!')
-            st.write(f"Fehler beim Exportieren als CSV! {e}")
-
-        try:
-            if st.button("Export all to PDF", help="Klicken Sie hier um die Daten als PDF zu exportieren!"):
-                time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-                output_pdf_path = os.path.join(pdf_dir, f"{time}_overview_data.pdf")
-                pdf = SimpleDocTemplate(output_pdf_path, pagesize=letter)
-
-                # Convert the DataFrame to a list of lists for the Table
-                data = [df_selected.columns.tolist()] + df_selected.values.tolist()
-                table = Table(data)
-
-                # Define the style of the table
-                table_style = TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ])
-
-                table.setStyle(table_style)
-
-                # Include the table in the PDF
-                elements = [table]
-
-                pdf.build(elements)
-                st.success(f"Data successfully exported to {output_pdf_path}")
-        except Exception as e:
-            logging.exception('Fehler beim Exportieren als PDF!')
-            st.write(f"Fehler beim Exportieren als PDF! {e}")
-
-    else:
-        st.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
-except Exception as e:
-    st.write(f"Fehler: Es wurden keine Daten gefunden. {e}")
