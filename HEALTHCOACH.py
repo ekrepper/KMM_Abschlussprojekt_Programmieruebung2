@@ -155,6 +155,7 @@ if option == "🏠Home":
     - **Datei-Upload**
       - Lade deine `.fit`-Dateien hoch.
       - Nur `.fit`-Dateien werden unterstützt. Andere Formate sind nicht zulässig.
+      - Bisher bietet HEALTHCOACH nur die Auswertung von Laufdaten an. Weitere Funktionen für weiter Sportarten sind in Planung.
 
     - **Datenbank**
       - Die Trainingsdaten werden in einer SQLite-Datenbank gespeichert und verarbeitet.
@@ -637,6 +638,7 @@ elif option == "🏃Trainingsübersicht":
             
             # Filtern der Datenframes nach dem ausgewählten Datumbereich
             df_selected = exp.filter_dataframe(df_overview, start_date, end_date)
+            
 
             try:
                 if tab2.button("Export all to CSV", help="Klicken Sie hier um die Daten als CSV zu exportieren!"):
@@ -645,10 +647,12 @@ elif option == "🏃Trainingsübersicht":
                     st.experimental_rerun()
             except Exception as e:
                 tab2.write(f"Fehler beim Exportieren als CSV! {e}")
+            
+            #Exportieren der Daten als PDF, get_overview_data() und get_summary_data() sollen in einem PDF dargestellt werden
 
             try:
                 if tab2.button("Export all to PDF", help="Klicken Sie hier um die Daten als PDF zu exportieren!"):
-                    output_pdf_path = exp.export_to_pdf(df_selected)
+                    output_pdf_path = exp.export_to_pdf(df_selected, summary_data)
                     st.success(f"Data successfully exported to {output_pdf_path}")
             except Exception as e:
                 tab2.write(f"Fehler beim Exportieren als PDF! {e}")

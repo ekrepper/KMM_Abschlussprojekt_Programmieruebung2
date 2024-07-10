@@ -31,16 +31,19 @@ def export_to_csv(df_selected):
         raise e
 
 
-def export_to_pdf(df_selected):
+def export_to_pdf(df_selected, df_summary_selected):
     """ Exportiert das DataFrame als PDF. """
     try:
         time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         output_pdf_path = os.path.join(pdf_dir, f"{time}_overview_data.pdf")
         pdf = SimpleDocTemplate(output_pdf_path, pagesize=landscape(letter))
 
+
         # Convert the DataFrame to a list of lists for the Table
         data = [df_selected.columns.tolist()] + df_selected.values.tolist()
+        data1 = [df_summary_selected.columns.tolist()] + df_summary_selected.values.tolist()
         table = Table(data)
+        table1 = Table(data1)
 
         # Define the style of the table
         table_style = TableStyle([
@@ -49,9 +52,11 @@ def export_to_pdf(df_selected):
         ])
 
         table.setStyle(table_style)
+        table1.setStyle(table_style)
+        
 
         # Include the table in the PDF
-        elements = [table]
+        elements = [table, table1]
 
         pdf.build(elements)
         return output_pdf_path
