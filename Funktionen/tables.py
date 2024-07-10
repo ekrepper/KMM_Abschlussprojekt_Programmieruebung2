@@ -321,20 +321,3 @@ def get_bestleistungen():
     df = pd.read_sql_query("SELECT * FROM bestleistungen", conn)
     conn.close()
     return df
-
-if __name__ == "__main__":
-    conn = sqlite3.connect('fitfile_data.db')
-    c = conn.cursor()
-    
-    delete_sql = """
-       Drop table trainings
-    """
-    try:
-        c.execute(delete_sql)
-        conn.commit()
-        print("Eintrag erfolgreich gelöscht.")
-    except sqlite3.Error as e:
-        print(f"Fehler beim Löschen des Eintrags: {e}")
-    finally:
-        conn.close()
-    
