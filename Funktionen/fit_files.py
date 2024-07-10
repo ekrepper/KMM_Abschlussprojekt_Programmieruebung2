@@ -15,7 +15,7 @@ import pandas as pd  # Library for data manipulation and analysis
 class FitFile:
     """Represents a FIT file and provides methods to extract data from it."""
 
-    def __init__(self, fit_file, user_id=None):
+    def __init__(self, fit_file, user_id=None, m_heartrate = None):
         """
         Initialize the FitFile object with the provided FIT file and optional user ID.
 
@@ -35,7 +35,9 @@ class FitFile:
         self.timestamp = self.get_timestamp()
         self.date = self.get_date()
         self.calendar_week = self.get_calendar_week()
-        self.heartrate_zones = self.get_heartrate_zones(211)  # 220 - 30 = 190 (max. Herzfrequenz)
+        self.sampling_rate = self.get_samling_rate()
+        self.max_heartrate = m_heartrate
+        self.heartrate_zones = self.get_heartrate_zones(self.max_heartrate)
         self.time_zone_1 = self.get_time_in_zones(self.heartrate_zones["Zone 1"])
         self.time_zone_2 = self.get_time_in_zones(self.heartrate_zones["Zone 2"])
         self.time_zone_3 = self.get_time_in_zones(self.heartrate_zones["Zone 3"])
@@ -192,6 +194,16 @@ class FitFile:
         """
         calendar_week = self.timestamp.isocalendar()[1]
         return calendar_week
+    
+    def get_samling_rate(self):
+        """
+        Calculate the sampling rate of the heart rate data.
+
+        Returns:
+        - sampling_rate (float): The sampling rate in Hz.
+        """
+        sampling_rate = (self.time[-1] - self.time[0]) / len(self.time)
+        return sampling_rate
 
     def get_heartrate_zones(self, max_heartrate):
         """
@@ -203,11 +215,11 @@ class FitFile:
         Returns:
         - data (dict): A dictionary containing the heart rate zones.
         """
-        zone_1 = np.where(self.heartrate < 0.6 * max_heartrate)
-        zone_2 = np.where(np.logical_and(self.heartrate >= 0.6 * max_heartrate, self.heartrate < 0.7 * max_heartrate))
-        zone_3 = np.where(np.logical_and(self.heartrate >= 0.7 * max_heartrate, self.heartrate < 0.8 * max_heartrate))  
-        zone_4 = np.where(np.logical_and(self.heartrate >= 0.8 * max_heartrate, self.heartrate < 0.9 * max_heartrate))
-        zone_5 = np.where(self.heartrate >= 0.9 * max_heartrate)
+        zone_1 = np.where(self.heartrate < 0.71 * max_heartrate)
+        zone_2 = np.where(np.logical_and(self.heartrate >= 0.71 * max_heartrate, self.heartrate < 0.76 * max_heartrate))
+        zone_3 = np.where(np.logical_and(self.heartrate >= 0.76 * max_heartrate, self.heartrate < 0.81 * max_heartrate))  
+        zone_4 = np.where(np.logical_and(self.heartrate >= 0.81 * max_heartrate, self.heartrate < 0.87 * max_heartrate))
+        zone_5 = np.where(self.heartrate >= 0.87 * max_heartrate)
         data = {"Zone 1" : zone_1[0],
                 "Zone 2" : zone_2[0],
                 "Zone 3" : zone_3[0],
@@ -228,7 +240,7 @@ class FitFile:
         if len(zone_indices) == 0:
             return "00:00:00"
         
-        total_time_in_seconds = len(zone_indices)  # The number of indices represents the time in seconds
+        total_time_in_seconds = len(zone_indices) * self.sampling_rate  # Calculate the total time in seconds
         
         hours = int(total_time_in_seconds // 3600)
         minutes = int((total_time_in_seconds % 3600) // 60)
@@ -278,4 +290,16 @@ class FitFile:
             );
         """
         return insert_sql
+    
+
+
+if __name__ == "__main__":
+    data = FitFile("data/Fit_files/Running_2024-07-09T09_37_19.fit", "1", 211)
+    print(data.time_zone_1)
+    print(data.time_zone_2)
+    print(data.time_zone_3)
+    print(data.time_zone_4)
+    print(data.time_zone_5)
+    print(np.min(data.heartrate))
+
 

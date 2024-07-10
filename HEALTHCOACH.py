@@ -430,7 +430,7 @@ elif option == "🏃Trainingsübersicht":
                 st.error(f"Die Datei {uploaded_file.name} wird nicht unterstützt. Es werden nur .fit Dateien akzeptiert.")
                 continue
 
-            fit_parser = ff.FitFile(uploaded_file, user_id)
+            fit_parser = ff.FitFile(uploaded_file, user_id, int(tb.get_max_hr()))
             insert_sql = fit_parser.get_insert_statement()
             if insert_sql:
                 try:
