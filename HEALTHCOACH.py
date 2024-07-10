@@ -14,7 +14,7 @@ import sqlite3
 from sqlite3 import Error
 import time
 import random
-import plotly.io as pio
+
 
 #from A_my_streamlit import read_data as rd
 from Funktionen import performance_hr_analysis as pha 
@@ -566,10 +566,7 @@ elif option == "🏃Trainingsübersicht":
         )
 
         tab1.plotly_chart(fig)
-
-        # Speichern des Diagramms als Bild
-        #fig.write_image('pictures/plot.png', format='png')
-
+    
         df_trainings_week = tb.get_training_data_by_week(tab1.number_input("Kalenderwoche eingeben:", min_value=1, max_value=53, value=1))
 
         #Säulendiagramm der trainings in der ausgewählten Woche
