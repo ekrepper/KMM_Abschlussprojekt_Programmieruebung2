@@ -604,10 +604,16 @@ elif option == "🏃Trainingsübersicht":
                 tab2.write(df_selected)
                 tab2.write(summary_data)
 
+                #trennlinie 
+                tab2.markdown("---")
+                tab2.write("Trainingseinheit löschen:")
+                try:
                 # Löschen von Einträgen aus der Datenbank mit der activity_id
-                # delete_id = tab2.number_input("Activity-ID des Trainings, das sie löschen wollen, auswählen:", min_value=0, max_value=53, value=1, key="delete_id")
-                # if tab2.button("Löschen"):
-                #     tb.delete_entry(delete_id)
+                    delete_id = tab2.number_input("Activity-ID des Trainings, das sie löschen wollen, auswählen:", min_value=0, max_value=53, value=1, key="delete_id")
+                    if tab2.button("Löschen"):
+                        tb.delete_entry(delete_id)
+                except Exception as e:
+                    tab2.write(f"Fehler beim Löschen! {e}")
 
                 
             else:
@@ -651,17 +657,7 @@ try:
 except Exception as e:
     tab2.write(f"Fehler - bitte gültigen Zeitraum auswählen! Verursachende Fehlermeldung: {e}")
 
-#trennlinie 
 
-tab2.markdown("---")
-tab2.write("Trainingseinheit löschen:")
-try:
-# Löschen von Einträgen aus der Datenbank mit der activity_id
-    delete_id = tab2.number_input("Activity-ID des Trainings, das sie löschen wollen, auswählen:", min_value=0, max_value=53, value=1, key="delete_id")
-    if tab2.button("Löschen"):
-        tb.delete_entry(delete_id)
-except Exception as e:
-    tab2.write(f"Fehler beim Löschen! {e}")
 
 
         
