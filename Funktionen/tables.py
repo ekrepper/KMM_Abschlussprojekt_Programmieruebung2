@@ -155,7 +155,6 @@ def get_summary_data(start_date, end_date):
         SELECT 
             SUM(activity_total_distance) AS total_distance,
             time(SUM(strftime('%s', activity_duration)), 'unixepoch') AS total_duration_formatted,
-            time(AVG(activity_avg_pace)) AS avg_pace,
             AVG(activity_avg_hr) AS avg_hr
             
         FROM 

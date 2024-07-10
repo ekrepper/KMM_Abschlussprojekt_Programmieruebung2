@@ -615,7 +615,9 @@ elif option == "🏃Trainingsübersicht":
                 except Exception as e:
                     tab2.write(f"Fehler beim Löschen! {e}")
 
-                
+                #trennlinie
+                tab2.markdown("---")
+                 
             else:
                 st.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
         except Exception as e:
@@ -625,48 +627,48 @@ elif option == "🏃Trainingsübersicht":
         st.write("Noch keine Daten vorhanden.")
         tab2.write("Noch keine Daten vorhanden.")
 
-try:
-    if isinstance(selected_date, tuple):
-        start_date = selected_date[0]  # Umwandlung in datetime.date
-        end_date = selected_date[1]  # Umwandlung in datetime.date
+    try:
+        if isinstance(selected_date, tuple):
+            start_date = selected_date[0]  # Umwandlung in datetime.date
+            end_date = selected_date[1]  # Umwandlung in datetime.date
 
-        # Sicherstellen, dass activity_date im datetime.date-Format ist
-        df_overview['activity_date'] = pd.to_datetime(df_overview['activity_date']).dt.date
+            # Sicherstellen, dass activity_date im datetime.date-Format ist
+            df_overview['activity_date'] = pd.to_datetime(df_overview['activity_date']).dt.date
+            
+            # Filtern der Datenframes nach dem ausgewählten Datumbereich
+            df_selected = exp.filter_dataframe(df_overview, start_date, end_date)
+
+            try:
+                if tab2.button("Export all to CSV", help="Klicken Sie hier um die Daten als CSV zu exportieren!"):
+                    csv_path = exp.export_to_csv(df_selected)
+                    st.success(f"Data successfully exported to {csv_path}")
+                    st.experimental_rerun()
+            except Exception as e:
+                tab2.write(f"Fehler beim Exportieren als CSV! {e}")
+
+            try:
+                if tab2.button("Export all to PDF", help="Klicken Sie hier um die Daten als PDF zu exportieren!"):
+                    output_pdf_path = exp.export_to_pdf(df_selected)
+                    st.success(f"Data successfully exported to {output_pdf_path}")
+            except Exception as e:
+                tab2.write(f"Fehler beim Exportieren als PDF! {e}")
+
+        else:
+            tab2.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
+        #exception 
+    except Exception as e:
+        tab2.write(f"Fehler - bitte gültigen Zeitraum auswählen! Verursachende Fehlermeldung: {e}")
+
+
+
+
+            
+
+
+            
         
-        # Filtern der Datenframes nach dem ausgewählten Datumbereich
-        df_selected = exp.filter_dataframe(df_overview, start_date, end_date)
 
-        try:
-            if tab2.button("Export all to CSV", help="Klicken Sie hier um die Daten als CSV zu exportieren!"):
-                csv_path = exp.export_to_csv(df_selected)
-                st.success(f"Data successfully exported to {csv_path}")
-                st.experimental_rerun()
-        except Exception as e:
-            tab2.write(f"Fehler beim Exportieren als CSV! {e}")
-
-        try:
-            if tab2.button("Export all to PDF", help="Klicken Sie hier um die Daten als PDF zu exportieren!"):
-                output_pdf_path = exp.export_to_pdf(df_selected)
-                st.success(f"Data successfully exported to {output_pdf_path}")
-        except Exception as e:
-            tab2.write(f"Fehler beim Exportieren als PDF! {e}")
-
-    else:
-        tab2.write("Bitte wählen Sie einen gültigen Zeitraum aus.")
-    #exception 
-except Exception as e:
-    tab2.write(f"Fehler - bitte gültigen Zeitraum auswählen! Verursachende Fehlermeldung: {e}")
-
-
-
-
-        
-
-
-        
-    
-
-        
+            
 
         
 
