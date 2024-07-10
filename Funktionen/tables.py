@@ -1,5 +1,4 @@
 import sqlite3
-import fitparse as ff  # oder der passende Fitfile Parser
 import pandas as pd
 import streamlit as st
 
@@ -9,9 +8,11 @@ if 'show_user_form' not in st.session_state:
 if 'user_id' not in st.session_state:
     st.session_state.user_id = None
 
-#User anlegen 
-
+# User anlegen
 def create_user():
+    """
+    Creates the 'user' table in the database if it doesn't exist.
+    """
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
     c.execute('''
@@ -27,6 +28,16 @@ def create_user():
     conn.close()
 
 def insert_user(user_id, vorname, nachname, geburtsdatum, max_hr):
+    """
+    Inserts a new user into the 'user' table.
+    
+    Args:
+        user_id (str): The user ID.
+        vorname (str): The first name of the user.
+        nachname (str): The last name of the user.
+        geburtsdatum (str): The birth date of the user.
+        max_hr (int): The maximum heart rate of the user.
+    """
     user_id = geburtsdatum.strftime('%Y%m%d')
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
@@ -35,6 +46,12 @@ def insert_user(user_id, vorname, nachname, geburtsdatum, max_hr):
     conn.close()
 
 def get_user():
+    """
+    Retrieves the list of users from the 'user' table.
+    
+    Returns:
+        list: The list of users in the format "user_id - name".
+    """
     conn = sqlite3.connect('fitfile_data.db')
     df = pd.read_sql_query("SELECT user_id, vorname || ' ' || nachname AS name FROM user", conn)
     conn.close()
@@ -44,6 +61,12 @@ def get_user():
     return users
 
 def get_active_user_id():
+    """
+    Retrieves the active user ID from the 'active_User' table.
+    
+    Returns:
+        str: The active user ID.
+    """
     conn = sqlite3.connect('fitfile_data.db')
     cursor = conn.cursor()
     cursor.execute("SELECT active_User FROM active_User LIMIT 1")  # Annahme: es gibt immer nur einen aktiven Benutzer
@@ -52,13 +75,23 @@ def get_active_user_id():
     return active_user_id[0] if active_user_id else None
 
 def delete_user(user_id):
+    """
+    Deletes a user from the 'user' table.
+    
+    Args:
+        user_id (str): The user ID of the user to be deleted.
+    """
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
     delete_sql = f"""
         DELETE FROM user WHERE user_id = '{user_id}'
     """
+    delete_sql_1 = f"""
+        DELETE FROM trainings WHERE user_id = '{user_id}'
+    """
     try:
         c.execute(delete_sql)
+        c.execute(delete_sql_1)
         conn.commit()
         st.write("Benutzer erfolgreich gelöscht.")
     except sqlite3.Error as e:
@@ -67,9 +100,12 @@ def delete_user(user_id):
         conn.close()
 
 
-#Trainingsdaten
+# Trainingsdaten
 
 def create_table():
+    """
+    Creates the 'trainings' table in the database if it doesn't exist.
+    """
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
     c.execute('''
@@ -95,9 +131,14 @@ def create_table():
 
 
 def get_training_data():
+    """
+    Retrieves the training data for the active user from the 'trainings' table.
+    
+    Returns:
+        pandas.DataFrame: The training data.
+    """
     conn = sqlite3.connect('fitfile_data.db')
     user_id = get_active_user_id()
-    # st.text(user_id)
     query = f"""
         SELECT activity_kw, activity_date, SUM(activity_total_distance) AS total_distance
         FROM trainings WHERE user_id = '{user_id}'
@@ -106,10 +147,18 @@ def get_training_data():
     """
     df = pd.read_sql_query(query, conn)
     conn.close()
-    # st.text(df)
     return df
 
 def get_training_data_by_week(week):
+    """
+    Retrieves the training data for a specific week for the active user from the 'trainings' table.
+    
+    Args:
+        week (int): The week number.
+    
+    Returns:
+        pandas.DataFrame: The training data for the specified week.
+    """
     conn = sqlite3.connect('fitfile_data.db')
     user_id = get_active_user_id()
     query = f"""
@@ -122,6 +171,12 @@ def get_training_data_by_week(week):
     return df
 
 def get_overview_data():
+    """
+    Retrieves the overview data for the active user from the 'trainings' table.
+    
+    Returns:
+        pandas.DataFrame: The overview data.
+    """
     conn = sqlite3.connect('fitfile_data.db')
     user_id = get_active_user_id()
     query = f"""
@@ -149,6 +204,16 @@ def get_overview_data():
     return df
 
 def get_summary_data(start_date, end_date):
+    """
+    Retrieves the summary data for a specific date range for the active user from the 'trainings' table.
+    
+    Args:
+        start_date (str): The start date of the date range.
+        end_date (str): The end date of the date range.
+    
+    Returns:
+        pandas.DataFrame: The summary data.
+    """
     conn = sqlite3.connect('fitfile_data.db')
     user_id = get_active_user_id()
     query = f"""
@@ -168,6 +233,12 @@ def get_summary_data(start_date, end_date):
 
 
 def delete_entry(delete_id):
+    """
+    Deletes an entry from the 'trainings' table.
+    
+    Args:
+        delete_id (int): The ID of the entry to be deleted.
+    """
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
     user_id = get_active_user_id()
@@ -185,9 +256,12 @@ def delete_entry(delete_id):
 
 
 
-#Bestleistungen
+# Bestleistungen
 
 def create_database():
+    """
+    Creates the 'bestleistungen' table in the database if it doesn't exist.
+    """
     conn = sqlite3.connect('bestleistungen.db')
     c = conn.cursor()
     c.execute('''
@@ -204,16 +278,28 @@ def create_database():
 create_database()
 
 
-# Funktion zum Einfügen der Bestleistung in die Datenbank
 def insert_bestleistung(strecke, zeit, datum):
+    """
+    Inserts a new bestleistung into the 'bestleistungen' table.
+    
+    Args:
+        strecke (str): The distance of the bestleistung.
+        zeit (str): The time of the bestleistung.
+        datum (str): The date of the bestleistung.
+    """
     conn = sqlite3.connect('bestleistungen.db')
     c = conn.cursor()
     c.execute("INSERT INTO bestleistungen (strecke, zeit, datum) VALUES (?, ?, ?)", (strecke, zeit, datum))
     conn.commit()
     conn.close()
 
-# Funktion zum Abrufen der Bestleistungen aus der Datenbank
 def get_bestleistungen():
+    """
+    Retrieves the bestleistungen from the 'bestleistungen' table.
+    
+    Returns:
+        pandas.DataFrame: The bestleistungen.
+    """
     conn = sqlite3.connect('bestleistungen.db')
     df = pd.read_sql_query("SELECT * FROM bestleistungen", conn)
     conn.close()

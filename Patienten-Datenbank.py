@@ -658,17 +658,4 @@ elif option == "🏃Trainingsübersicht":
         #exception 
     except Exception as e:
         tab2.write(f"Fehler - bitte gültigen Zeitraum auswählen! Verursachende Fehlermeldung: {e}")
-
-
-
-
-            
-
-
-            
         
-
-            
-
-        
-
