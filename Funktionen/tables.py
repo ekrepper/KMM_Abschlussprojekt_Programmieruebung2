@@ -170,7 +170,6 @@ def get_summary_data(start_date, end_date):
 def delete_entry(delete_id):
     conn = sqlite3.connect('fitfile_data.db')
     c = conn.cursor()
-    user_id = get_active_user_id()
     delete_sql = f"""
         DELETE FROM trainings WHERE activity_id = '{delete_id}'
     """
