@@ -291,12 +291,3 @@ class FitFile:
         return insert_sql
     
 
-
-if __name__ == "__main__":
-    data = FitFile("data/Fit_files/Running_2024-07-09T09_37_19.fit", "1", 211)
-    print(data.time_zone_1)
-    print(data.time_zone_2)
-    print(data.time_zone_3)
-    print(data.time_zone_4)
-    print(data.time_zone_5)
-
